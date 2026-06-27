@@ -244,6 +244,18 @@ select.select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
 .stat-grid .stat-card:nth-child(2) .stat-card__ic{color:var(--sky);background:var(--sky-tint)}
 .stat-grid .stat-card:nth-child(3) .stat-card__ic{color:var(--amber);background:var(--amber-tint)}
 
+/* ---- แดชบอร์ด: แถวกดดูได้ ---- */
+.dash-row{position:relative}
+.dash-row--clickable{cursor:pointer;border-radius:10px;padding-left:8px;padding-right:30px;margin:0 -8px;transition:background .15s var(--ease)}
+.dash-row--clickable:hover{background:var(--accent-tint)}
+.dash-row__go{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--accent);opacity:.5;transition:opacity .15s,transform .15s}
+.dash-row--clickable:hover .dash-row__go{opacity:1;transform:translateY(-50%) translateX(2px)}
+/* ---- ไอคอนในป้ายสถานะ + หัวเรื่องหน้า ---- */
+.status-ic{width:14px;height:14px;flex:none}
+.status.has-ic::before{display:none}
+.view-header h2{display:flex;align-items:center;gap:11px}
+.vh-ic{width:26px;height:26px;flex:none;color:var(--accent);opacity:.95}
+
 /* ---------- responsive ---------- */
 @media (max-width:860px){
   .app{grid-template-columns:1fr}
@@ -906,7 +918,10 @@ const ICON_PATHS = {
   list: '<line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/>',
   building: '<rect width="16" height="20" x="4" y="2" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/>',
   layers: '<path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 12.5-9.17 4.16a2 2 0 0 1-1.66 0L2 12.5"/><path d="m22 17.5-9.17 4.16a2 2 0 0 1-1.66 0L2 17.5"/>',
-  percent: '<line x1="19" x2="5" y1="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/>'
+  percent: '<line x1="19" x2="5" y1="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/>',
+  chevronRight: '<path d="m9 18 6-6-6-6"/>',
+  cloud: '<path d="M17.5 19a4.5 4.5 0 0 0 0-9h-1.8A7 7 0 1 0 4 15.2"/>',
+  cloudOff: '<path d="m2 2 20 20"/><path d="M5.8 5.8A7 7 0 0 0 8 19h9a4.5 4.5 0 0 0 1.6-8.7"/><path d="M12 5a7 7 0 0 1 6.7 5"/>'
 };
 function icon(name, cls = "ic") {
   const p = ICON_PATHS[name];
@@ -1562,7 +1577,13 @@ async function listSubmissions(formId = null) {
     let q = fsApi.collection(db, COLLECTION);
     if (formId) q = fsApi.query(q, fsApi.where("formId", "==", formId));
     const snap = await fsApi.getDocs(q);
-    cloud = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    cloud = snap.docs.map(d => {
+      const data = d.data();
+      // แปลง Firestore Timestamp → ข้อความ ISO เพื่อให้เรียงลำดับ/แสดงวันที่ได้ถูกต้อง
+      if (data.submittedAt && typeof data.submittedAt.toDate === "function") data.submittedAt = data.submittedAt.toDate().toISOString();
+      if (data.updatedAt && typeof data.updatedAt.toDate === "function") data.updatedAt = data.updatedAt.toDate().toISOString();
+      return { id: d.id, ...data };
+    });
   } catch (err) {
     console.error("[DLTV] ดึงข้อมูลจากคลาวด์ไม่สำเร็จ:", err);
   }
@@ -1682,14 +1703,14 @@ async function boot() {
 function updateConnStatus(err) {
   if (state.offline) {
     const reason = OFFLINE_MODE ? "" : " · แตะเพื่อลองเชื่อมต่อใหม่";
-    statusEl.textContent = "โหมดออฟไลน์ — บันทึกในเครื่อง (localStorage)" + reason;
-    statusEl.className = "status status--offline";
+    statusEl.innerHTML = icon("cloudOff", "status-ic") + "<span>โหมดออฟไลน์ — บันทึกในเครื่อง (localStorage)" + reason + "</span>";
+    statusEl.className = "status status--offline has-ic";
     statusEl.title = err ? ("เชื่อมต่อ Firebase ไม่สำเร็จ: " + (err.message || err)) : "";
     statusEl.style.cursor = OFFLINE_MODE ? "default" : "pointer";
     statusEl.onclick = OFFLINE_MODE ? null : reconnect;
   } else {
-    statusEl.textContent = "เชื่อมต่อ Firebase แล้ว";
-    statusEl.className = "status status--online";
+    statusEl.innerHTML = icon("cloud", "status-ic") + "<span>เชื่อมต่อ Firebase แล้ว</span>";
+    statusEl.className = "status status--online has-ic";
     statusEl.title = "";
     statusEl.style.cursor = "default";
     statusEl.onclick = null;
@@ -1759,7 +1780,7 @@ function navButton(label, key, onClick, iconName) {
 function showSchoolView() {
   setActive("school");
   viewEl.innerHTML = "";
-  viewEl.append(header("ข้อมูลพื้นฐานโรงเรียน", "กรอกครั้งเดียว ระบบจะแนบข้อมูลนี้ไปกับทุกแบบฟอร์มที่บันทึก"));
+  viewEl.append(header("ข้อมูลพื้นฐานโรงเรียน", "กรอกครั้งเดียว ระบบจะแนบข้อมูลนี้ไปกับทุกแบบฟอร์มที่บันทึก", "school"));
   const container = document.createElement("div");
   viewEl.append(container);
 
@@ -1779,7 +1800,7 @@ function showSchoolView() {
 async function showFormView(formMeta, editRecord = null) {
   setActive(editRecord ? "records" : formMeta.id);
   viewEl.innerHTML = "";
-  viewEl.append(header(formMeta.code + " — " + formMeta.title, "กำลังโหลด..."));
+  viewEl.append(header(formMeta.code + " — " + formMeta.title, "กำลังโหลด...", FORM_ICONS[formMeta.id] || "clipboardList"));
   let schema;
   try {
     schema = await getSchema(formMeta);
@@ -1790,7 +1811,8 @@ async function showFormView(formMeta, editRecord = null) {
   viewEl.innerHTML = "";
   viewEl.append(header(
     (editRecord ? "แก้ไข · " : "") + schema.code + " — " + schema.title,
-    schema.audience || ""
+    schema.audience || "",
+    FORM_ICONS[schema.id] || FORM_ICONS[formMeta.id] || "clipboardList"
   ));
 
   // โหมดแก้ไข: ใช้ข้อมูลโรงเรียนของรายการนั้น
@@ -1893,7 +1915,7 @@ function schoolKey(s) { return (s?.school_code || "") + "|" + (s?.school_name ||
 async function showDashboardView() {
   setActive("dashboard");
   viewEl.innerHTML = "";
-  viewEl.append(header("แดชบอร์ดสรุปผล", "ภาพรวมคะแนนการประเมินรายโรงเรียน จากทุกแบบฟอร์มที่บันทึก"));
+  viewEl.append(header("แดชบอร์ดสรุปผล", "ภาพรวมคะแนนการประเมินรายโรงเรียน จากทุกแบบฟอร์มที่บันทึก", "barChart"));
 
   const rows = await listSubmissions();
   if (!rows.length) { viewEl.append(infoBox("ยังไม่มีข้อมูลที่บันทึก")); return; }
@@ -1943,10 +1965,10 @@ async function showDashboardView() {
     const byForm = {};
     g.subs.forEach(s => { (byForm[s.formId] = byForm[s.formId] || []).push(s); });
     Object.keys(byForm).sort().forEach(fid => {
-      const subs = byForm[fid].slice().sort((a, b) => (b.submittedAt || "").localeCompare(a.submittedAt || ""));
+      const subs = byForm[fid].slice().sort((a, b) => String(b.submittedAt || "").localeCompare(String(a.submittedAt || "")));
       const latest = subs[0];
       const row = document.createElement("div");
-      row.className = "dash-row";
+      row.className = "dash-row dash-row--clickable";
       const t = latest.scores && latest.scores.__total;
       const pct = t && t.max ? Math.round((t.score / t.max) * 100) : null;
       const lvl = pct == null ? "" : pct >= 80 ? "good" : pct >= 60 ? "ok" : "dev";
@@ -1956,7 +1978,10 @@ async function showDashboardView() {
           ? `<div class="dash-row__score">${t.score} / ${t.max}</div>` +
             `<div class="dash-bar"><i class="lvl-${lvl}" style="width:${pct}%"></i></div>` +
             `<div class="dash-row__pct lvl-${lvl}">${pct}%</div>`
-          : `<div class="dash-row__score">—</div><div class="dash-bar"></div><div class="dash-row__pct">ไม่มีคะแนน</div>`);
+          : `<div class="dash-row__score">—</div><div class="dash-bar"></div><div class="dash-row__pct">ไม่มีคะแนน</div>`) +
+        icon("chevronRight", "dash-row__go");
+      row.title = "คลิกเพื่อดู/แก้ไขรายการล่าสุด";
+      row.addEventListener("click", () => editRecord(latest));
       card.append(row);
 
       // รายละเอียดองค์ประกอบ (ถ้ามีหลาย section ที่ให้คะแนน)
@@ -1990,9 +2015,9 @@ function statCard(label, value, unit, iconName) {
 async function showRecordsView() {
   setActive("records");
   viewEl.innerHTML = "";
-  viewEl.append(header("ข้อมูลที่บันทึก", state.offline ? "บันทึกในเครื่อง (localStorage) — แก้ไข/ลบ/ส่งออก PDF ได้" : "แสดงรายการจาก Firebase"));
+  viewEl.append(header("ข้อมูลที่บันทึก", state.offline ? "บันทึกในเครื่อง (localStorage) — แก้ไข/ลบ/ส่งออก PDF ได้" : "แสดงรายการจาก Firebase", "database"));
 
-  const rows = (await listSubmissions()).slice().sort((a, b) => (b.submittedAt || "").localeCompare(a.submittedAt || ""));
+  const rows = (await listSubmissions()).slice().sort((a, b) => String(b.submittedAt || "").localeCompare(String(a.submittedAt || "")));
 
   // ตัวกรองตามแบบฟอร์ม
   const filterBar = document.createElement("div");
@@ -2169,7 +2194,7 @@ function exportDashboardPDF(groups, keys, formTitle, stat) {
     g.subs.forEach(s => { (byForm[s.formId] = byForm[s.formId] || []).push(s); });
     let rows = "";
     Object.keys(byForm).sort().forEach(fid => {
-      const subs = byForm[fid].slice().sort((a, b) => (b.submittedAt || "").localeCompare(a.submittedAt || ""));
+      const subs = byForm[fid].slice().sort((a, b) => String(b.submittedAt || "").localeCompare(String(a.submittedAt || "")));
       const t = subs[0].scores && subs[0].scores.__total;
       const cell = t && t.max ? `${t.score} / ${t.max} (${Math.round((t.score / t.max) * 100)}%)` : "—";
       rows += `<tr><td>${esc(formTitle[fid] || fid)}</td><td class="p-num">${subs.length}</td><td class="p-num">${cell}</td></tr>`;
@@ -2202,7 +2227,7 @@ function esc(s) {
 function el2(tag, cls, text) { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
 function labelEl(text) { return el2("label", "field-label", text); }
 function wrapTable(t) { const d = document.createElement("div"); d.className = "table-wrap table-wrap--eval"; d.append(t); return d; }
-function header(title, sub) { const h = document.createElement("div"); h.className = "view-header"; h.innerHTML = `<h2>${esc(title)}</h2>${sub ? `<p>${esc(sub)}</p>` : ""}`; return h; }
+function header(title, sub, iconName) { const h = document.createElement("div"); h.className = "view-header"; h.innerHTML = `<h2>${iconName ? icon(iconName, "vh-ic") : ""}<span>${esc(title)}</span></h2>${sub ? `<p>${esc(sub)}</p>` : ""}`; return h; }
 function actionBar() { const d = document.createElement("div"); d.className = "action-bar"; return d; }
 function primaryBtn(t, fn, iconName) { const b = document.createElement("button"); b.className = "btn btn--primary"; b.innerHTML = (iconName ? icon(iconName, "btn-ic") : "") + "<span>" + esc(t) + "</span>"; b.onclick = fn; return b; }
 function ghostBtn(t, fn, iconName) { const b = document.createElement("button"); b.className = "btn btn--ghost"; b.innerHTML = (iconName ? icon(iconName, "btn-ic") : "") + "<span>" + esc(t) + "</span>"; b.onclick = fn; return b; }
