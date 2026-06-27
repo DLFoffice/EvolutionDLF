@@ -953,50 +953,69 @@ h1,h2,h3,h4{font-family:"Anuphan","Sarabun",sans-serif;font-weight:600;letter-sp
   padding:20px;background:rgba(8,12,36,.62);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
   opacity:0;pointer-events:none;transition:opacity .25s var(--ease)}
 .group-modal.show{opacity:1;pointer-events:auto}
-.group-modal__card{background:var(--surface);color:var(--ink);width:min(720px,94vw);max-height:92vh;overflow-y:auto;
-  border-radius:22px;padding:30px 30px 26px;box-shadow:var(--shadow-lg);
+.group-modal__card{position:relative;background:var(--surface);color:var(--ink);width:min(720px,94vw);max-height:92vh;overflow-y:auto;
+  border-radius:22px;padding:32px 30px 26px;box-shadow:var(--shadow-lg);
   transform:translateY(16px) scale(.97);opacity:0;
-  transition:transform .3s var(--ease-back),opacity .24s var(--ease)}
+  transition:transform .3s var(--ease-back),opacity .24s var(--ease);
+  /* ค่าสีเริ่มต้น (โทนอินดิโก) จะถูกแทนที่ตามกลุ่มที่เลือก */
+  --gc:var(--accent);--gc-text:var(--accent-text);--gc-grad:var(--grad-accent);
+  --gc-tint:var(--accent-tint);--gc-border:rgba(111,126,230,.42)}
+/* แถบสีสันด้านบนป๊อปอัป */
+.group-modal__card::before{content:"";position:absolute;left:0;right:0;top:0;height:6px;
+  border-radius:22px 22px 0 0;
+  background:linear-gradient(90deg,#1fd6ab 0%,#5aa6ef 34%,#a98cf0 67%,#f0b73a 100%)}
 .group-modal.show .group-modal__card{transform:translateY(0) scale(1);opacity:1}
-.group-modal__eyebrow{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
-  color:var(--accent-text);font-family:"Anuphan",sans-serif}
+.group-modal__eyebrow{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  font-family:"Anuphan",sans-serif;background:var(--grad-accent);-webkit-background-clip:text;background-clip:text;color:transparent}
 .group-modal__title{font-size:23px;margin:4px 0 4px;color:var(--ink)}
 .group-modal__sub{margin:0 0 22px;color:var(--muted);font-size:14px;line-height:1.55}
 
+/* ---- โทนสีรายกลุ่ม ---- */
+.group-card--teal,.group-tone--teal{--gc:var(--brand);--gc-text:var(--brand-text);--gc-grad:var(--grad-brand);--gc-tint:var(--brand-tint);--gc-border:rgba(22,199,154,.5)}
+.group-card--amber,.group-tone--amber{--gc:var(--amber);--gc-text:#b07608;--gc-grad:var(--grad-amber);--gc-tint:var(--amber-tint);--gc-border:rgba(200,134,10,.5)}
+.group-card--violet,.group-tone--violet{--gc:var(--violet);--gc-text:#6c4dc4;--gc-grad:var(--grad-violet);--gc-tint:var(--violet-tint);--gc-border:rgba(124,92,214,.5)}
+
 .group-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.group-card{text-align:left;cursor:pointer;background:var(--surface);border:1.5px solid var(--line);border-radius:16px;
+.group-card{text-align:left;cursor:pointer;border:1.5px solid var(--gc-border);border-radius:16px;
+  background:linear-gradient(165deg,var(--gc-tint),#fff 78%);
   padding:20px 18px;display:flex;flex-direction:column;gap:10px;font:inherit;color:var(--ink);
   transition:transform .18s var(--ease-back),border-color .18s,box-shadow .18s,background .18s}
-.group-card:hover{transform:translateY(-3px);border-color:var(--accent);box-shadow:var(--shadow-md);background:var(--accent-tint)}
-.group-card__ic{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;background:var(--accent-tint);color:var(--accent-text)}
-.group-card:hover .group-card__ic{background:var(--surface)}
-.group-card__ic svg{width:24px;height:24px}
+.group-card:hover{transform:translateY(-4px);border-color:var(--gc);
+  box-shadow:0 20px 40px -22px var(--gc),var(--shadow-md);
+  background:linear-gradient(165deg,var(--gc-tint),#fff 60%)}
+.group-card__ic{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;
+  background:var(--gc-grad);color:#fff;box-shadow:0 10px 20px -10px var(--gc)}
+.group-card__ic svg{width:25px;height:25px}
 .group-card__name{font-family:"Anuphan",sans-serif;font-weight:700;font-size:16px}
 .group-card__forms{font-size:12.5px;color:var(--muted);line-height:1.5}
-.group-card__cta{margin-top:auto;font-size:13px;font-weight:600;color:var(--accent-text);display:flex;align-items:center;gap:5px}
+.group-card__cta{margin-top:auto;font-size:13px;font-weight:700;color:var(--gc-text);display:flex;align-items:center;gap:5px}
 .group-card__cta svg{width:15px;height:15px}
 
 .group-back{background:transparent;border:0;color:var(--muted);font:inherit;font-size:13.5px;cursor:pointer;
   display:inline-flex;align-items:center;gap:6px;padding:4px 0;margin-bottom:8px}
-.group-back:hover{color:var(--accent-text)}
+.group-back:hover{color:var(--gc-text)}
 .group-back svg{width:16px;height:16px;transform:rotate(180deg)}
-.group-chosen{display:flex;align-items:center;gap:12px;margin-bottom:18px;padding:12px 14px;border-radius:13px;background:var(--accent-tint)}
-.group-chosen__ic{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;background:var(--surface);color:var(--accent-text);flex:none}
+.group-chosen{display:flex;align-items:center;gap:12px;margin-bottom:18px;padding:13px 15px;border-radius:14px;
+  background:linear-gradient(120deg,var(--gc-tint),#fff 120%);border:1px solid var(--gc-border)}
+.group-chosen__ic{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;
+  background:var(--gc-grad);color:#fff;flex:none;box-shadow:0 8px 16px -8px var(--gc)}
 .group-chosen__ic svg{width:22px;height:22px}
-.group-chosen__name{font-family:"Anuphan",sans-serif;font-weight:700;font-size:16px;color:var(--accent-text)}
+.group-chosen__name{font-family:"Anuphan",sans-serif;font-weight:700;font-size:16px;color:var(--gc-text)}
 .group-chosen__hint{font-size:12.5px;color:var(--muted)}
 
 .journey{display:flex;flex-direction:column;gap:10px;margin-bottom:8px}
 .journey-step{display:flex;align-items:center;gap:14px;width:100%;text-align:left;cursor:pointer;
   background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:14px 16px;font:inherit;color:var(--ink);
   transition:transform .16s var(--ease-back),border-color .16s,box-shadow .16s,background .16s}
-.journey-step:hover{transform:translateX(3px);border-color:var(--accent);box-shadow:var(--shadow-md);background:var(--accent-tint)}
+.journey-step:hover{transform:translateX(3px);border-color:var(--gc);
+  box-shadow:0 14px 30px -20px var(--gc),var(--shadow-md);background:var(--gc-tint)}
 .journey-step__no{width:30px;height:30px;border-radius:50%;flex:none;display:grid;place-items:center;
-  background:var(--grad-accent);color:#fff;font-family:"Anuphan",sans-serif;font-weight:700;font-size:14px}
+  background:var(--gc-grad);color:#fff;font-family:"Anuphan",sans-serif;font-weight:700;font-size:14px;
+  box-shadow:0 6px 14px -6px var(--gc)}
 .journey-step__body{flex:1;min-width:0}
 .journey-step__code{font-family:"Anuphan",sans-serif;font-weight:700;font-size:14.5px;display:block}
 .journey-step__title{font-size:12.5px;color:var(--muted);line-height:1.45;margin-top:1px;display:block}
-.journey-step__go{width:18px;height:18px;flex:none;color:var(--accent);opacity:.6;transition:transform .16s,opacity .16s}
+.journey-step__go{width:18px;height:18px;flex:none;color:var(--gc);opacity:.6;transition:transform .16s,opacity .16s}
 .journey-step:hover .journey-step__go{opacity:1;transform:translateX(2px)}
 
 .group-modal__foot{margin-top:18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
@@ -1887,6 +1906,7 @@ const TARGET_GROUPS = [
     id: "dest_teacher",
     name: "ครูโรงเรียนปลายทาง",
     icon: "userCheck",
+    color: "teal",
     hint: "กรอกข้อมูลโรงเรียน แล้วทำแบบฟอร์ม DLTV-01, DLTV-02 และ DLTV-03",
     forms: ["dltv01", "dltv02", "dltv03"]
   },
@@ -1894,6 +1914,7 @@ const TARGET_GROUPS = [
     id: "student",
     name: "นักเรียน",
     icon: "smile",
+    color: "amber",
     hint: "กรอกข้อมูลโรงเรียน แล้วทำแบบสอบถามนักเรียน DLTV-07",
     forms: ["dltv07"]
   },
@@ -1901,7 +1922,9 @@ const TARGET_GROUPS = [
     id: "origin_teacher",
     name: "ครูโรงเรียนต้นทาง",
     icon: "monitor",
-    hint: "กรอกข้อมูลโรงเรียน แล้วทำแบบประเมิน DLTV-05",
+    color: "violet",
+    needsSchool: false,
+    hint: "ทำแบบประเมิน DLTV-05 (ไม่ต้องกรอกข้อมูลโรงเรียน)",
     forms: ["dltv05"]
   }
 ];
@@ -1927,8 +1950,7 @@ function hideGroupModal() {
 }
 
 function openGroupModal() {
-  if (state.group) renderGroupStep2(state.group);
-  else renderGroupStep1();
+  renderGroupStep1();              // เปิดมาที่หน้าเลือกกลุ่มเป้าหมายเสมอ
   groupModalEl.classList.remove("show");
   void groupModalEl.offsetWidth;   // รีสตาร์ตอนิเมชัน
   groupModalEl.classList.add("show");
@@ -1939,14 +1961,16 @@ function openGroupModal() {
 function renderGroupStep1() {
   let cards = "";
   TARGET_GROUPS.forEach(g => {
-    const list = g.forms.map(fid => (state.forms.find(f => f.id === fid) || {}).code || fid).join(" · ");
-    cards += `<button type="button" class="group-card" data-group="${g.id}">
+    const codes = g.forms.map(fid => (state.forms.find(f => f.id === fid) || {}).code || fid);
+    const list = ((g.needsSchool !== false ? ["ข้อมูลโรงเรียน"] : []).concat(codes)).join(" · ");
+    cards += `<button type="button" class="group-card group-card--${g.color || "teal"}" data-group="${g.id}">
       <span class="group-card__ic">${icon(g.icon)}</span>
       <span class="group-card__name">${esc(g.name)}</span>
       <span class="group-card__forms">ข้อมูลโรงเรียน · ${esc(list)}</span>
       <span class="group-card__cta">เลือกกลุ่มนี้ ${icon("chevronRight")}</span>
     </button>`;
   });
+  groupModalCardEl.className = "group-modal__card";   // โทนสีรวม (รุ้ง) สำหรับหน้าเลือก
   groupModalCardEl.innerHTML =
     `<div class="group-modal__eyebrow">ยินดีต้อนรับ</div>
      <h2 id="group-modal-title" class="group-modal__title">เลือกกลุ่มเป้าหมายของคุณ</h2>
@@ -1977,17 +2001,24 @@ function renderGroupStep2(id) {
   const g = getGroup(id);
   if (!g) { renderGroupStep1(); return; }
 
-  // ขั้นแรกเสมอ = ข้อมูลโรงเรียน
-  let steps = `<button type="button" class="journey-step" data-go="school">
-      <span class="journey-step__no">1</span>
+  // ขั้นแรก = ข้อมูลโรงเรียน (ยกเว้นกลุ่มที่ไม่ต้องกรอก เช่น ครูโรงเรียนต้นทาง)
+  const needSchool = g.needsSchool !== false;
+  let steps = "";
+  let n = 0;
+  if (needSchool) {
+    n += 1;
+    steps += `<button type="button" class="journey-step" data-go="school">
+      <span class="journey-step__no">${n}</span>
       <span class="journey-step__body">
         <span class="journey-step__code">ข้อมูลโรงเรียน</span>
         <span class="journey-step__title">ข้อมูลพื้นฐานของโรงเรียน — กรอกก่อนเป็นอันดับแรก ใช้ร่วมกับทุกแบบฟอร์ม</span>
       </span>${icon("chevronRight", "journey-step__go")}
     </button>`;
-  groupFormMetas(g).forEach((f, i) => {
+  }
+  groupFormMetas(g).forEach(f => {
+    n += 1;
     steps += `<button type="button" class="journey-step" data-go="form" data-form="${f.id}">
-      <span class="journey-step__no">${i + 2}</span>
+      <span class="journey-step__no">${n}</span>
       <span class="journey-step__body">
         <span class="journey-step__code">${esc(f.code)}</span>
         <span class="journey-step__title">${esc(f.title)}</span>
@@ -1995,6 +2026,7 @@ function renderGroupStep2(id) {
     </button>`;
   });
 
+  groupModalCardEl.className = "group-modal__card group-tone--" + (g.color || "teal");
   groupModalCardEl.innerHTML =
     `<button type="button" class="group-back" data-back="1">${icon("chevronRight")}<span>เปลี่ยนกลุ่มเป้าหมาย</span></button>
      <div class="group-chosen">
@@ -2005,7 +2037,9 @@ function renderGroupStep2(id) {
        </span>
      </div>
      <h2 id="group-modal-title" class="group-modal__title">แบบฟอร์มที่ต้องกรอก</h2>
-     <p class="group-modal__sub">แตะที่รายการเพื่อไปยังแบบฟอร์มนั้น แนะนำให้กรอก “ข้อมูลโรงเรียน” ก่อน แล้วจึงกรอกแบบฟอร์มตามลำดับ</p>
+     <p class="group-modal__sub">${needSchool
+        ? "แตะที่รายการเพื่อไปยังแบบฟอร์มนั้น แนะนำให้กรอก “ข้อมูลโรงเรียน” ก่อน แล้วจึงกรอกแบบฟอร์มตามลำดับ"
+        : "แตะที่รายการเพื่อไปยังแบบฟอร์มที่ต้องกรอก"}</p>
      <div class="journey">${steps}</div>`;
 
   groupModalCardEl.querySelector("[data-back]").addEventListener("click", () => renderGroupStep1());
@@ -2101,7 +2135,10 @@ function buildNav() {
   tgBtn.addEventListener("click", openGroupModal);
   navEl.append(tgBtn);
 
-  navEl.append(navButton("ข้อมูลโรงเรียน", "school", () => showSchoolView(), "school"));
+  // เมนูข้อมูลโรงเรียน — แสดงเมื่อกลุ่มต้องกรอก (หรือยังไม่เลือกกลุ่ม/โหมดผู้ดูแล)
+  if (!g || g.needsSchool !== false) {
+    navEl.append(navButton("ข้อมูลโรงเรียน", "school", () => showSchoolView(), "school"));
+  }
 
   navEl.append(navLabel("แบบฟอร์มประเมิน"));
   groupFormMetas(g).forEach(f => {
@@ -2169,7 +2206,8 @@ async function showFormView(formMeta, editRecord = null) {
 
   // โหมดแก้ไข: ใช้ข้อมูลโรงเรียนของรายการนั้น
   const schoolForThis = editRecord ? (editRecord.school || {}) : state.school;
-  if (!editRecord && !state.school.school_name) {
+  const groupNeedsSchool = (getGroup(state.group) || {}).needsSchool !== false;
+  if (!editRecord && groupNeedsSchool && !state.school.school_name) {
     viewEl.append(infoBox("ยังไม่ได้กรอกข้อมูลโรงเรียน — แนะนำให้กรอกที่เมนู “ข้อมูลโรงเรียน” ก่อน เพื่อแนบไปกับการบันทึก"));
   }
   if (schema.instruction) viewEl.append(infoBox(schema.instruction));
