@@ -3,7 +3,7 @@
 <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>ระบบกรอกข้อมูลประเมินคุณภาพ DLTV</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700family=Anuphan:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swapfamily=Mitr:wght@400;500;600;700family=Anuphan:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swapfamily=Sarabun:wght@400;500;600;700family=Anuphan:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swapdisplay=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>/* ============================================================
    DLTV — Minimal UI  (Anuphan + Sarabun)
    ============================================================ */
@@ -822,6 +822,125 @@ select.select option{color:#1b2342;background:#fff}
 .callout--info{background:rgba(255,255,255,.06);border-color:rgba(255,214,94,.34);color:#ffe27a}
 .callout--info::before{background:#ffd75e;opacity:1}
 .callout--info b,.callout--info strong{color:#fff}
+
+/* ============================================================
+   ☀️  LIGHT · MINIMAL THEME  (เลเยอร์สุดท้าย — ทับธีมเข้มเดิม)
+   โทนสว่าง สบายตา · พื้นขาวนวลมีจุดพาสเทลจาง ๆ
+   อินดิโกเป็นสีหลัก · การ์ดขาวเงานุ่ม · เน้นช่องว่างและความเรียบ
+   ============================================================ */
+:root{
+  /* พื้นหลังสว่าง */
+  --bg:#f4f6fc;
+  --grad-app:linear-gradient(175deg,#f7f8fd 0%,#eef1fb 55%,#e9edf9 100%);
+  /* พื้นผิว/เส้น */
+  --surface:#ffffff; --surface-2:#f3f5fc; --glass-strong:#eef1fb;
+  --field-bg:#ffffff; --line:#e6e9f5;
+  /* ตัวอักษร — บนพื้นสว่างเป็นสีเข้มทั้งหมด */
+  --ink:#222a47; --muted:#5f6883; --faint:#9aa2bd;
+  --on-dark:#222a47; --on-dark-muted:#5f6883; --on-dark-faint:#9aa2bd;
+  /* อินดิโก = สีหลัก (โครงสร้าง · ปุ่ม · การเลือก) */
+  --accent:#5b67d8; --accent-text:#414cc0; --accent-tint:rgba(91,103,216,.12);
+  --grad-accent:linear-gradient(135deg,#6f7be8,#5159d8);
+  /* มินต์เก็บไว้เป็นสีบวก/สำเร็จ */
+  --brand:#16c2a0; --brand-600:#10b08e; --brand-700:#0c937a; --brand-tint:rgba(22,194,160,.12);
+  --brand-text:#0c937a; --grad-brand:linear-gradient(135deg,#1fd2ad,#10b390);
+  /* เงานุ่มสำหรับพื้นสว่าง */
+  --shadow:0 1px 2px rgba(35,45,95,.06);
+  --shadow-md:0 8px 24px -12px rgba(40,52,110,.20),0 2px 6px rgba(40,52,110,.06);
+  --shadow-lg:0 22px 50px -22px rgba(40,52,110,.30);
+  --radius:18px; --radius-sm:11px;
+}
+
+/* ---- ฉากหลังสว่าง + จุดพาสเทลกระจายแบบมินิมอล ---- */
+html{background:var(--bg)}
+body{background:var(--grad-app);background-attachment:fixed;color:var(--ink);position:relative}
+body::before{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(circle, rgba(91,103,216,.10) 0 6px, transparent 7px) -20px 40px/360px 360px,
+    radial-gradient(circle, rgba(236,140,170,.12) 0 5px, transparent 6px) 180px 120px/420px 420px,
+    radial-gradient(circle, rgba(22,194,160,.10) 0 5px, transparent 6px) 60px 260px/520px 480px,
+    radial-gradient(circle, rgba(245,180,70,.10) 0 4px, transparent 5px) 300px 30px/300px 300px;
+  background-repeat:repeat;opacity:.55;
+}
+.app{position:relative;z-index:1}
+
+/* ---- ฟอนต์: หัวข้อใช้ Anuphan ให้เรียบทันสมัย (เลิกใช้ Mitr ที่หนา) ---- */
+h1,h2,h3,h4{font-family:"Anuphan","Sarabun",sans-serif;font-weight:600;letter-spacing:-.01em}
+
+/* ---- เนื้อหา: ตัวอักษรเข้มอ่านสบายบนพื้นสว่าง ---- */
+.content{color:var(--ink)}
+.view-header h2{color:var(--ink);text-shadow:none;letter-spacing:-.015em}
+.view-header p{color:var(--muted)}
+.summary-picker > .field-label,.summary-picker > label{color:var(--ink)}
+
+/* ---- การ์ด: ขาวสะอาด มุมโค้งนุ่ม เงาเบา ---- */
+.form-card,.stat-card,.school-card,.records,.callout{
+  background:var(--surface);color:var(--ink);
+  border:1px solid var(--line);box-shadow:var(--shadow-md);
+}
+.form-card{padding:28px 30px}
+.form-card:hover,.school-card:hover{box-shadow:var(--shadow-lg)}
+
+/* ---- แถบข้าง: สว่าง สะอาด เส้นบาง ---- */
+.sidebar{
+  background:rgba(255,255,255,.86);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-right:1px solid var(--line);box-shadow:1px 0 0 rgba(40,52,110,.03);
+}
+.brand h1{color:var(--ink);text-shadow:none}
+.brand p{color:var(--muted)}
+.brand-mark{background:var(--grad-accent);box-shadow:0 8px 18px -6px rgba(81,89,216,.5)}
+.status{background:var(--surface-2);border-color:var(--line);color:var(--ink)}
+.status--online{background:var(--accent-tint);color:var(--accent-text)}
+.status--online::before{background:var(--accent)}
+.status--offline{background:#fdf3e3;color:#9a6a16}
+.status--offline::before{background:#e2a23a}
+.nav-label{color:var(--faint)}
+.nav-label::before{background:var(--accent)}
+.nav-label:nth-of-type(2)::before{background:var(--brand)}
+.nav-btn{color:var(--muted)}
+.nav-btn:hover{background:var(--surface-2);color:var(--ink)}
+.nav-btn.active{background:var(--accent-tint);color:var(--accent-text);font-weight:600}
+.nav-btn.active::before{background:var(--grad-accent)}
+.sidebar-foot{color:var(--faint);border-top-color:var(--line)}
+@media (max-width:860px){
+  .sidebar{border-bottom:1px solid var(--line)}
+  .nav-btn{border:1px solid var(--line)}
+}
+
+/* ---- ปุ่มหลัก: อินดิโก (ให้เข้าชุดกับธีม) · มินต์ไว้ที่ปุ่มยืนยัน ---- */
+.btn--primary{background:var(--grad-accent);color:#fff;box-shadow:0 10px 22px -10px rgba(81,89,216,.55)}
+.btn--primary:hover{box-shadow:0 14px 28px -10px rgba(81,89,216,.6)}
+.btn--ghost{background:#fff;color:var(--ink);border-color:var(--line)}
+.btn--ghost:hover{background:var(--surface-2);border-color:var(--accent)}
+
+/* ---- กล่องแจ้งเตือน info: โทนอินดิโกอ่อน อ่านง่าย ---- */
+.callout{color:var(--muted)}
+.callout--info{background:var(--accent-tint);border-color:rgba(91,103,216,.28);color:var(--accent-text)}
+.callout--info::before{background:var(--accent);opacity:1}
+.callout--info b,.callout--info strong{color:var(--accent-text)}
+.callout--error{background:rgba(210,83,58,.08);border-color:rgba(210,83,58,.3);color:var(--dev)}
+
+/* ---- หัวตาราง: เทาอ่อน ตัวอักษรเข้ม ---- */
+.data-table thead th,.eval-table thead th{background:var(--surface-2);color:var(--ink)}
+
+/* ---- savebar: แถบขาวโปร่ง ---- */
+.savebar{background:rgba(255,255,255,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top-color:var(--line)}
+.savebar__num{color:var(--ink)}
+
+/* ---- ปุ่มเล็ก ---- */
+.mini-btn{background:#fff;color:var(--ink);border-color:var(--line)}
+.mini-btn:hover{background:var(--surface-2);border-color:var(--accent)}
+
+/* ---- โฟกัสคีย์บอร์ดชัดเจน ---- */
+.nav-btn:focus-visible,.btn:focus-visible,.mini-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ---- ปุ่มตัวเลือกในตาราง/ฟอร์มทั้งหมดเป็นอินดิโกให้เข้าชุด ---- */
+.eval-table--rating .pick input,
+.opt input,.rating-opt input,.rubric__opt input,.ev-item input,
+.ready-pick input,.lvl-pick input,.evidence__item input{accent-color:var(--accent)}
+.eval-table--rating tbody tr:has(input:checked){background:var(--accent-tint)}
+.eval-table--rating tbody tr:has(input:checked):hover{background:rgba(91,103,216,.16)}
 </style>
 </head>
 <body>
