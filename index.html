@@ -218,7 +218,7 @@ select.select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
 .save-modal.is-warn .save-modal__check-ring,
 .save-modal.is-warn .save-modal__check-tick{stroke:var(--amber)}
 .save-modal__title{margin:0 0 8px;font-size:19px;color:var(--ink)}
-.save-modal__msg{margin:0 0 20px;font-size:14px;line-height:1.55;color:var(--muted)}
+.save-modal__msg{margin:0 0 20px;font-size:14px;line-height:1.55;color:var(--muted);white-space:pre-line}
 .save-modal__msg:empty{display:none}
 .save-modal__btn{appearance:none;border:none;cursor:pointer;width:100%;
   padding:12px 18px;border-radius:12px;font-family:inherit;font-size:15px;font-weight:600;
@@ -850,7 +850,7 @@ const COLLECTION = "dltv_submissions";
 
 // ตั้งเป็น true เพื่อทดสอบระบบแบบไม่ต่อ Firebase (บันทึกลงเครื่องชั่วคราว/ดาวน์โหลด JSON)
 // ตั้งเป็น false เมื่อกรอกค่า firebaseConfig ด้านบนเรียบร้อยและพร้อมใช้งานจริง
-const OFFLINE_MODE = true;
+const OFFLINE_MODE = false;
 
 // ============================================================
 // form-renderer.js
@@ -1370,31 +1370,63 @@ function saveLocal() {
 }
 
 // เริ่มต้น Firebase (เรียกครั้งเดียวตอนแอปโหลด)
-async function initFirebase(retries = 3) {
+// แหล่งโหลด Firebase SDK (ESM) — ลองทีละแหล่งจนกว่าจะสำเร็จ
+const FB_SOURCES = [
+  {
+    name: "gstatic",
+    app: "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js",
+    fs:  "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"
+  },
+  {
+    name: "esm.sh",
+    app: "https://esm.sh/firebase@10.12.0/app",
+    fs:  "https://esm.sh/firebase@10.12.0/firestore"
+  }
+];
+let lastFbError = null;
+
+async function loadFirebaseSDK() {
+  for (const src of FB_SOURCES) {
+    try {
+      const appMod = await import(src.app);
+      const fsMod  = await import(src.fs);
+      console.info("[DLTV] โหลด Firebase SDK จาก " + src.name + " สำเร็จ");
+      return { appMod, fsMod, source: src.name };
+    } catch (err) {
+      lastFbError = err;
+      console.warn("[DLTV] โหลด Firebase SDK จาก " + src.name + " ไม่สำเร็จ:", err);
+    }
+  }
+  return null;
+}
+
+async function initFirebase(retries = 2) {
   if (OFFLINE_MODE) {
     console.info("[DLTV] ทำงานในโหมดออฟไลน์ (เก็บข้อมูลในเครื่องด้วย localStorage)");
     return { offline: true };
   }
   if (db) return { offline: false };   // เชื่อมต่อไว้แล้ว ไม่ต้องทำซ้ำ
-  let lastErr = null;
   for (let attempt = 1; attempt <= retries; attempt++) {
-    try {
-      const appMod = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
-      fsApi = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
-      const app = appMod.getApps && appMod.getApps().length
-        ? appMod.getApp()
-        : appMod.initializeApp(firebaseConfig);
-      db = fsApi.getFirestore(app);
-      console.info("[DLTV] เชื่อมต่อ Firebase สำเร็จ (ครั้งที่ " + attempt + ")");
-      return { offline: false };
-    } catch (err) {
-      lastErr = err;
-      console.warn("[DLTV] โหลด/เชื่อมต่อ Firebase ไม่สำเร็จ (ครั้งที่ " + attempt + "):", err);
-      if (attempt < retries) await new Promise(r => setTimeout(r, 800 * attempt));
+    const sdk = await loadFirebaseSDK();
+    if (sdk) {
+      try {
+        const { appMod, fsMod } = sdk;
+        fsApi = fsMod;
+        const app = appMod.getApps && appMod.getApps().length
+          ? appMod.getApp()
+          : appMod.initializeApp(firebaseConfig);
+        db = fsApi.getFirestore(app);
+        console.info("[DLTV] เชื่อมต่อ Firebase สำเร็จ (ครั้งที่ " + attempt + ", แหล่ง " + sdk.source + ")");
+        return { offline: false };
+      } catch (err) {
+        lastFbError = err;
+        console.warn("[DLTV] เริ่มต้น Firebase ไม่สำเร็จ (ครั้งที่ " + attempt + "):", err);
+      }
     }
+    if (attempt < retries) await new Promise(r => setTimeout(r, 800 * attempt));
   }
-  console.error("[DLTV] เชื่อมต่อ Firebase ไม่สำเร็จหลังลอง " + retries + " ครั้ง:", lastErr);
-  return { offline: true, error: lastErr };
+  console.error("[DLTV] เชื่อมต่อ Firebase ไม่สำเร็จ:", lastFbError);
+  return { offline: true, error: lastFbError };
 }
 
 // บันทึกข้อมูลหนึ่งรายการ (สร้างใหม่)
@@ -1632,7 +1664,13 @@ async function reconnect() {
   if (!state.offline) {
     showSaveModal({ title: "เชื่อมต่อสำเร็จ", message: "เชื่อมต่อ Firebase แล้ว ระบบจะบันทึกขึ้นคลาวด์ตามปกติ", kind: "ok" });
   } else {
-    showSaveModal({ title: "ยังเชื่อมต่อไม่ได้", message: "ยังเชื่อมต่อ Firebase ไม่สำเร็จ ข้อมูลจะถูกบันทึกลงเครื่องไว้ก่อน แล้วลองใหม่ได้ภายหลัง", kind: "warn", autoClose: 0 });
+    const detail = (fb.error && (fb.error.message || String(fb.error))) || "ไม่ทราบสาเหตุ";
+    showSaveModal({
+      title: "ยังเชื่อมต่อไม่ได้",
+      message: "ยังเชื่อมต่อ Firebase ไม่สำเร็จ ข้อมูลจะถูกบันทึกลงเครื่องไว้ก่อน\n\nสาเหตุ: " + detail,
+      kind: "warn",
+      autoClose: 0
+    });
   }
 }
 
