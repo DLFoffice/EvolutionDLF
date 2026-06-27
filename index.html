@@ -228,6 +228,22 @@ select.select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
 @keyframes checkRing{to{stroke-dashoffset:0}}
 @keyframes checkTick{to{stroke-dashoffset:0}}
 
+/* ---- ไอคอน inline SVG (ฝังในไฟล์ ไม่พึ่งไลบรารีภายนอก) ---- */
+.nav-btn{display:flex;align-items:center;gap:10px}
+.nav-ic{width:18px;height:18px;flex:none;opacity:.9}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn-ic{width:17px;height:17px;flex:none}
+.section-title{display:flex;align-items:center;gap:9px}
+.sec-ic{width:18px;height:18px;flex:none;color:var(--accent)}
+.field-heading{display:flex;align-items:center;gap:8px}
+.fh-ic{width:16px;height:16px;flex:none;color:var(--brand-600)}
+.stat-card__ic{position:absolute;top:16px;right:16px;width:40px;height:40px;border-radius:12px;
+  display:grid;place-items:center;background:var(--surface-2);color:var(--muted)}
+.stat-card__ic svg{width:21px;height:21px}
+.stat-grid .stat-card:nth-child(1) .stat-card__ic{color:var(--brand-600);background:var(--brand-tint)}
+.stat-grid .stat-card:nth-child(2) .stat-card__ic{color:var(--sky);background:var(--sky-tint)}
+.stat-grid .stat-card:nth-child(3) .stat-card__ic{color:var(--amber);background:var(--amber-tint)}
+
 /* ---------- responsive ---------- */
 @media (max-width:860px){
   .app{grid-template-columns:1fr}
@@ -871,12 +887,44 @@ function el(tag, attrs = {}, children = []) {
   return node;
 }
 
+// ---------- ชุดไอคอน inline SVG (สไตล์เส้น) ----------
+const ICON_PATHS = {
+  school: '<path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c0 1 2 2 6 2s6-1 6-2v-5"/>',
+  clipboardList: '<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6"/><path d="M9 16h6"/><path d="M9 8h.01"/>',
+  clipboardCheck: '<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/>',
+  book: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/>',
+  monitor: '<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/>',
+  userCheck: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m16 11 2 2 4-4"/>',
+  smile: '<circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01"/><path d="M15 9h.01"/>',
+  barChart: '<line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/>',
+  database: '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/>',
+  save: '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/>',
+  check: '<path d="M20 6 9 17l-5-5"/>',
+  fileDown: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v5h5"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/>',
+  rotate: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>',
+  x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+  list: '<line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/>',
+  building: '<rect width="16" height="20" x="4" y="2" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/>',
+  layers: '<path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 12.5-9.17 4.16a2 2 0 0 1-1.66 0L2 12.5"/><path d="m22 17.5-9.17 4.16a2 2 0 0 1-1.66 0L2 17.5"/>',
+  percent: '<line x1="19" x2="5" y1="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/>'
+};
+function icon(name, cls = "ic") {
+  const p = ICON_PATHS[name];
+  if (!p) return "";
+  return '<svg class="' + cls + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + p + '</svg>';
+}
+// แมปไอคอนของแต่ละแบบฟอร์ม
+const FORM_ICONS = {
+  dltv01: "clipboardList", dltv02: "clipboardCheck", dltv03: "book",
+  dltv05: "monitor", dltv06: "userCheck", dltv07: "smile"
+};
+
 // สร้างฟิลด์หนึ่งช่อง ลงทะเบียน getter (registry) และ setter (setters)
 function renderField(field, schema, registry, setters) {
   const wrap = el("div", { class: "field field--" + field.type });
 
   if (field.type === "heading") {
-    return el("h4", { class: "field-heading", text: field.label });
+    return el("h4", { class: "field-heading", html: icon("list", "fh-ic") + "<span>" + esc(field.label) + "</span>" });
   }
   if (field.type === "note") {
     return el("div", { class: "field-note" }, [
@@ -1240,7 +1288,7 @@ function renderForm(schema, container) {
   const sections = schema.sections || [{ id: "main", title: "", fields: schema.fields }];
   sections.forEach(sec => {
     const card = el("section", { class: "form-card" });
-    if (sec.title) card.append(el("h3", { class: "section-title", text: sec.title }));
+    if (sec.title) card.append(el("h3", { class: "section-title", html: icon("list", "sec-ic") + "<span>" + esc(sec.title) + "</span>" }));
     if (sec.scored) {
       card.classList.add("form-card--scored");
       if (schema.ratingLegend) card.append(el("p", { class: "rating-legend", text: schema.ratingLegend }));
@@ -1680,16 +1728,16 @@ function setActive(key) {
 
 function buildNav() {
   navEl.innerHTML = "";
-  navEl.append(navButton("ข้อมูลโรงเรียน", "school", () => showSchoolView()));
+  navEl.append(navButton("ข้อมูลโรงเรียน", "school", () => showSchoolView(), "school"));
 
   navEl.append(navLabel("แบบฟอร์มประเมิน"));
   state.forms.forEach(f => {
-    navEl.append(navButton(f.code + " · " + f.title, f.id, () => showFormView(f)));
+    navEl.append(navButton(f.code + " · " + f.title, f.id, () => showFormView(f), FORM_ICONS[f.id] || "clipboardList"));
   });
 
   navEl.append(navLabel("สรุปผล & รายงาน"));
-  navEl.append(navButton("แดชบอร์ดสรุปผล", "dashboard", () => showDashboardView()));
-  navEl.append(navButton("ข้อมูลที่บันทึก", "records", () => showRecordsView()));
+  navEl.append(navButton("แดชบอร์ดสรุปผล", "dashboard", () => showDashboardView(), "barChart"));
+  navEl.append(navButton("ข้อมูลที่บันทึก", "records", () => showRecordsView(), "database"));
 }
 
 function navLabel(text) {
@@ -1698,11 +1746,11 @@ function navLabel(text) {
   lbl.textContent = text;
   return lbl;
 }
-function navButton(label, key, onClick) {
+function navButton(label, key, onClick, iconName) {
   const b = document.createElement("button");
   b.className = "nav-btn";
   b.dataset.key = key;
-  b.textContent = label;
+  b.innerHTML = (iconName ? icon(iconName, "nav-ic") : "") + "<span>" + esc(label) + "</span>";
   b.addEventListener("click", () => { setActive(key); onClick(); });
   return b;
 }
@@ -1723,7 +1771,7 @@ function showSchoolView() {
     const { data } = ctrl.collect();
     state.school = data;
     toast("บันทึกข้อมูลโรงเรียนในเครื่องแล้ว ใช้ร่วมกับทุกแบบฟอร์ม");
-  }));
+  }, "save"));
   viewEl.append(bar);
 }
 
@@ -1768,13 +1816,13 @@ async function showFormView(formMeta, editRecord = null) {
   btns.append(ghostBtn("ส่งออก PDF", () => {
     const { data, scores } = ctrl.collect();
     exportPDF({ schema, school: schoolForThis, data, scores });
-  }));
+  }, "fileDown"));
   if (editRecord) {
-    btns.append(ghostBtn("ยกเลิก", () => showRecordsView()));
-    btns.append(primaryBtn("บันทึกการแก้ไข", () => submitForm(editRecord.id)));
+    btns.append(ghostBtn("ยกเลิก", () => showRecordsView(), "x"));
+    btns.append(primaryBtn("บันทึกการแก้ไข", () => submitForm(editRecord.id), "check"));
   } else {
-    btns.append(ghostBtn("ล้างฟอร์ม", () => showFormView(formMeta)));
-    btns.append(primaryBtn("บันทึกข้อมูล", () => submitForm()));
+    btns.append(ghostBtn("ล้างฟอร์ม", () => showFormView(formMeta), "rotate"));
+    btns.append(primaryBtn("บันทึกข้อมูล", () => submitForm(), "save"));
   }
   savebar.append(totalWrap, btns);
   viewEl.append(savebar);
@@ -1871,9 +1919,9 @@ async function showDashboardView() {
 
   const stats = document.createElement("div");
   stats.className = "stat-grid";
-  stats.append(statCard("โรงเรียนทั้งหมด", totalSchools, "โรงเรียน"));
-  stats.append(statCard("จำนวนชุดที่บันทึก", totalSubs, "ชุด"));
-  stats.append(statCard("คะแนนเฉลี่ยรวม", avgPct + "%", "ของคะแนนเต็ม"));
+  stats.append(statCard("โรงเรียนทั้งหมด", totalSchools, "โรงเรียน", "building"));
+  stats.append(statCard("จำนวนชุดที่บันทึก", totalSubs, "ชุด", "layers"));
+  stats.append(statCard("คะแนนเฉลี่ยรวม", avgPct + "%", "ของคะแนนเต็ม", "percent"));
   viewEl.append(stats);
 
   const bar = actionBar();
@@ -1930,10 +1978,11 @@ async function showDashboardView() {
   });
 }
 
-function statCard(label, value, unit) {
+function statCard(label, value, unit, iconName) {
   const d = document.createElement("div");
   d.className = "stat-card";
-  d.innerHTML = `<div class="stat-card__val">${value}</div><div class="stat-card__label">${esc(label)}</div><div class="stat-card__unit">${esc(unit)}</div>`;
+  d.innerHTML = (iconName ? '<div class="stat-card__ic">' + icon(iconName) + '</div>' : "") +
+    `<div class="stat-card__val">${value}</div><div class="stat-card__label">${esc(label)}</div><div class="stat-card__unit">${esc(unit)}</div>`;
   return d;
 }
 
@@ -2155,8 +2204,8 @@ function labelEl(text) { return el2("label", "field-label", text); }
 function wrapTable(t) { const d = document.createElement("div"); d.className = "table-wrap table-wrap--eval"; d.append(t); return d; }
 function header(title, sub) { const h = document.createElement("div"); h.className = "view-header"; h.innerHTML = `<h2>${esc(title)}</h2>${sub ? `<p>${esc(sub)}</p>` : ""}`; return h; }
 function actionBar() { const d = document.createElement("div"); d.className = "action-bar"; return d; }
-function primaryBtn(t, fn) { const b = document.createElement("button"); b.className = "btn btn--primary"; b.textContent = t; b.onclick = fn; return b; }
-function ghostBtn(t, fn) { const b = document.createElement("button"); b.className = "btn btn--ghost"; b.textContent = t; b.onclick = fn; return b; }
+function primaryBtn(t, fn, iconName) { const b = document.createElement("button"); b.className = "btn btn--primary"; b.innerHTML = (iconName ? icon(iconName, "btn-ic") : "") + "<span>" + esc(t) + "</span>"; b.onclick = fn; return b; }
+function ghostBtn(t, fn, iconName) { const b = document.createElement("button"); b.className = "btn btn--ghost"; b.innerHTML = (iconName ? icon(iconName, "btn-ic") : "") + "<span>" + esc(t) + "</span>"; b.onclick = fn; return b; }
 function miniBtn(t, fn, extra = "") { const b = document.createElement("button"); b.className = "mini-btn " + extra; b.textContent = t; b.onclick = fn; return b; }
 function infoBox(t) { const d = document.createElement("div"); d.className = "callout callout--info"; d.textContent = t; return d; }
 function errorBox(t) { const d = document.createElement("div"); d.className = "callout callout--error"; d.textContent = t; return d; }
