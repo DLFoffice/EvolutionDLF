@@ -1370,22 +1370,31 @@ function saveLocal() {
 }
 
 // เริ่มต้น Firebase (เรียกครั้งเดียวตอนแอปโหลด)
-async function initFirebase() {
+async function initFirebase(retries = 3) {
   if (OFFLINE_MODE) {
     console.info("[DLTV] ทำงานในโหมดออฟไลน์ (เก็บข้อมูลในเครื่องด้วย localStorage)");
     return { offline: true };
   }
-  try {
-    const appMod = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
-    fsApi = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
-    const app = appMod.initializeApp(firebaseConfig);
-    db = fsApi.getFirestore(app);
-    console.info("[DLTV] เชื่อมต่อ Firebase สำเร็จ");
-    return { offline: false };
-  } catch (err) {
-    console.error("[DLTV] เชื่อมต่อ Firebase ไม่สำเร็จ:", err);
-    return { offline: true, error: err };
+  if (db) return { offline: false };   // เชื่อมต่อไว้แล้ว ไม่ต้องทำซ้ำ
+  let lastErr = null;
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const appMod = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
+      fsApi = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+      const app = appMod.getApps && appMod.getApps().length
+        ? appMod.getApp()
+        : appMod.initializeApp(firebaseConfig);
+      db = fsApi.getFirestore(app);
+      console.info("[DLTV] เชื่อมต่อ Firebase สำเร็จ (ครั้งที่ " + attempt + ")");
+      return { offline: false };
+    } catch (err) {
+      lastErr = err;
+      console.warn("[DLTV] โหลด/เชื่อมต่อ Firebase ไม่สำเร็จ (ครั้งที่ " + attempt + "):", err);
+      if (attempt < retries) await new Promise(r => setTimeout(r, 800 * attempt));
+    }
   }
+  console.error("[DLTV] เชื่อมต่อ Firebase ไม่สำเร็จหลังลอง " + retries + " ครั้ง:", lastErr);
+  return { offline: true, error: lastErr };
 }
 
 // บันทึกข้อมูลหนึ่งรายการ (สร้างใหม่)
@@ -1579,10 +1588,7 @@ document.addEventListener("keydown", e => { if (e.key === "Escape") hideSaveModa
 async function boot() {
   const fb = await initFirebase();
   state.offline = fb.offline;
-  statusEl.textContent = state.offline
-    ? "โหมดออฟไลน์ — บันทึกในเครื่อง (localStorage)"
-    : "เชื่อมต่อ Firebase แล้ว";
-  statusEl.className = "status " + (state.offline ? "status--offline" : "status--online");
+  updateConnStatus(fb.error);
 
   const reg = await loadJSON("forms/index.json");
   state.forms = reg.forms;
@@ -1590,6 +1596,44 @@ async function boot() {
 
   buildNav();
   showSchoolView();
+}
+
+// อัปเดตป้ายสถานะการเชื่อมต่อ + ถ้าออฟไลน์ ให้กดเพื่อ "ลองเชื่อมต่อใหม่" ได้
+function updateConnStatus(err) {
+  if (state.offline) {
+    const reason = OFFLINE_MODE ? "" : " · แตะเพื่อลองเชื่อมต่อใหม่";
+    statusEl.textContent = "โหมดออฟไลน์ — บันทึกในเครื่อง (localStorage)" + reason;
+    statusEl.className = "status status--offline";
+    statusEl.title = err ? ("เชื่อมต่อ Firebase ไม่สำเร็จ: " + (err.message || err)) : "";
+    statusEl.style.cursor = OFFLINE_MODE ? "default" : "pointer";
+    statusEl.onclick = OFFLINE_MODE ? null : reconnect;
+  } else {
+    statusEl.textContent = "เชื่อมต่อ Firebase แล้ว";
+    statusEl.className = "status status--online";
+    statusEl.title = "";
+    statusEl.style.cursor = "default";
+    statusEl.onclick = null;
+  }
+}
+
+// พยายามเชื่อมต่อ Firebase ใหม่ตามคำสั่งผู้ใช้ (ไม่ต้องรีเฟรชหน้า)
+let reconnecting = false;
+async function reconnect() {
+  if (reconnecting || OFFLINE_MODE) return;
+  reconnecting = true;
+  statusEl.onclick = null;
+  statusEl.style.cursor = "progress";
+  statusEl.textContent = "กำลังเชื่อมต่อ Firebase…";
+  statusEl.className = "status";
+  const fb = await initFirebase();
+  state.offline = fb.offline;
+  updateConnStatus(fb.error);
+  reconnecting = false;
+  if (!state.offline) {
+    showSaveModal({ title: "เชื่อมต่อสำเร็จ", message: "เชื่อมต่อ Firebase แล้ว ระบบจะบันทึกขึ้นคลาวด์ตามปกติ", kind: "ok" });
+  } else {
+    showSaveModal({ title: "ยังเชื่อมต่อไม่ได้", message: "ยังเชื่อมต่อ Firebase ไม่สำเร็จ ข้อมูลจะถูกบันทึกลงเครื่องไว้ก่อน แล้วลองใหม่ได้ภายหลัง", kind: "warn", autoClose: 0 });
+  }
 }
 
 function setActive(key) {
