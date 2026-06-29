@@ -1136,6 +1136,12 @@ h1,h2,h3,h4{font-family:"Anuphan","Sarabun",sans-serif;font-weight:600;letter-sp
   .group-grid{grid-template-columns:1fr}
   .group-modal__card{padding:24px 20px 20px}
 }
+/* ---- ฟอร์มเข้าสู่ระบบผู้ดูแล ---- */
+.admin-login{display:flex;flex-direction:column;gap:8px;max-width:360px}
+.admin-login .field-label{margin-top:6px}
+.admin-login .input{width:100%}
+.admin-login__err{color:var(--dev);font-size:13px;background:rgba(210,83,58,.1);border:1px solid rgba(210,83,58,.3);border-radius:10px;padding:8px 12px}
+.admin-login__btn{margin-top:10px;align-self:flex-start}
 
 /* ============================================================
    🌑  Stat card สรุป — สีเข้มไล่สี ตัวอักษรขาว
@@ -2012,6 +2018,7 @@ const state = {
   current: null,
   offline: true,
   group: null,      // กลุ่มเป้าหมายที่ผู้ใช้เลือก (dest_teacher / student / origin_teacher / null = ทั้งหมด)
+  isAdmin: false,   // เข้าสู่ระบบเป็นผู้ดูแลแล้วหรือไม่ (เห็นทุกโรงเรียน + แดชบอร์ด)
   schemaCache: {}   // formId -> schema
 };
 
@@ -2068,6 +2075,12 @@ document.addEventListener("keydown", e => { if (e.key === "Escape") hideSaveModa
 // กลุ่มเป้าหมาย — ป๊อปอัปเลือกกลุ่ม แล้วลิงก์ไปยังแบบฟอร์มที่ต้องกรอก
 // ============================================================
 const GROUP_LS_KEY = "dltv_target_group";
+const ADMIN_LS_KEY = "dltv_is_admin";
+// บัญชีผู้ดูแลระบบ (ฝั่งหน้าเว็บ) — ใช้ดูข้อมูลทุกโรงเรียนและแดชบอร์ด
+const ADMIN_USER = "Admin";
+const ADMIN_PASS = "Admin";
+function loadAdmin() { try { return localStorage.getItem(ADMIN_LS_KEY) === "1"; } catch (e) { return false; } }
+function saveAdmin(on) { try { on ? localStorage.setItem(ADMIN_LS_KEY, "1") : localStorage.removeItem(ADMIN_LS_KEY); } catch (e) { /* ไม่บล็อก */ } }
 
 // แต่ละกลุ่มต้องกรอก "ข้อมูลโรงเรียน" ก่อนเสมอ แล้วจึงกรอกแบบฟอร์มตามรายการ forms
 const TARGET_GROUPS = [
@@ -2157,14 +2170,56 @@ function renderGroupStep1() {
     btn.addEventListener("click", () => chooseGroup(btn.dataset.group));
   });
   groupModalCardEl.querySelector("[data-all]").addEventListener("click", () => {
-    state.group = null; saveGroupChoice(null); buildNav(); hideGroupModal(); showSchoolView();
+    if (state.isAdmin) { enterAdminMode(); }   // ล็อกอินอยู่แล้ว เข้าได้เลย
+    else renderAdminLogin();
   });
+}
+
+// เข้าสู่โหมดผู้ดูแล (เห็นทุกโรงเรียน + แดชบอร์ด)
+function enterAdminMode() {
+  state.isAdmin = true; saveAdmin(true);
+  state.group = null; saveGroupChoice(null);
+  buildNav(); hideGroupModal(); showDashboardView();
+}
+
+// หน้าเข้าสู่ระบบผู้ดูแล (User: Admin / Password: Admin)
+function renderAdminLogin() {
+  groupModalCardEl.className = "group-modal__card";
+  groupModalCardEl.innerHTML =
+    `<button type="button" class="group-back" data-back="1">${icon("chevronRight")}<span>กลับไปเลือกกลุ่ม</span></button>
+     <div class="group-modal__eyebrow">ผู้ดูแลระบบ</div>
+     <h2 id="group-modal-title" class="group-modal__title">เข้าสู่ระบบผู้ดูแล</h2>
+     <p class="group-modal__sub">เฉพาะผู้ดูแลระบบเท่านั้น เข้าสู่ระบบเพื่อดูข้อมูลของทุกโรงเรียนและแดชบอร์ดสรุปผล</p>
+     <div class="admin-login">
+       <label class="field-label" for="admin-user">ชื่อผู้ใช้ (User)</label>
+       <input id="admin-user" class="input" type="text" autocomplete="username" placeholder="Admin">
+       <label class="field-label" for="admin-pass">รหัสผ่าน (Password)</label>
+       <input id="admin-pass" class="input" type="password" autocomplete="current-password" placeholder="••••••">
+       <div class="admin-login__err" hidden>ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง</div>
+       <button type="button" class="btn btn--primary admin-login__btn">${icon("check", "btn-ic")}<span>เข้าสู่ระบบ</span></button>
+     </div>`;
+  const userEl = groupModalCardEl.querySelector("#admin-user");
+  const passEl = groupModalCardEl.querySelector("#admin-pass");
+  const errEl = groupModalCardEl.querySelector(".admin-login__err");
+  const submit = () => {
+    if (userEl.value.trim() === ADMIN_USER && passEl.value === ADMIN_PASS) {
+      enterAdminMode();
+    } else {
+      errEl.hidden = false; passEl.value = ""; passEl.focus();
+    }
+  };
+  groupModalCardEl.querySelector(".admin-login__btn").addEventListener("click", submit);
+  [userEl, passEl].forEach(el => el.addEventListener("keydown", e => { if (e.key === "Enter") submit(); }));
+  groupModalCardEl.querySelector("[data-back]").addEventListener("click", () => renderGroupStep1());
+  userEl.focus();
 }
 
 function chooseGroup(id) {
   if (!getGroup(id)) return;
   state.group = id;
   saveGroupChoice(id);
+  // เลือกกลุ่มทั่วไป = ออกจากโหมดผู้ดูแล (สิทธิ์จำกัดเฉพาะโรงเรียนตัวเอง)
+  if (state.isAdmin) { state.isAdmin = false; saveAdmin(false); }
   buildNav();
   renderGroupStep2(id);
 }
@@ -2229,8 +2284,8 @@ function renderGroupStep2(id) {
 }
 
 // ปิดป๊อปอัปด้วยการคลิกพื้นหลัง/กด Esc ได้เฉพาะเมื่อเลือกกลุ่มแล้ว (กันผู้ใช้ใหม่ปิดโดยไม่ตั้งใจ)
-groupModalEl.addEventListener("click", e => { if (e.target === groupModalEl && state.group) hideGroupModal(); });
-document.addEventListener("keydown", e => { if (e.key === "Escape" && state.group) hideGroupModal(); });
+groupModalEl.addEventListener("click", e => { if (e.target === groupModalEl && (state.group || state.isAdmin)) hideGroupModal(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && (state.group || state.isAdmin)) hideGroupModal(); });
 
 // ---------- เริ่มต้น ----------
 async function boot() {
@@ -2243,15 +2298,22 @@ async function boot() {
   state.commonSchema = await loadJSON("forms/common.json");
 
   state.group = loadSavedGroup();   // คืนค่ากลุ่มเป้าหมายที่เคยเลือกไว้ (ถ้ามี)
+  state.isAdmin = loadAdmin();       // คืนสถานะผู้ดูแลระบบ (ถ้าเคยเข้าสู่ระบบไว้)
   buildNav();
-  const g0 = getGroup(state.group);
-  if (groupShowsSchool(g0)) {
-    showSchoolView();
+  if (state.isAdmin) {
+    // ผู้ดูแล: เข้าหน้าแดชบอร์ดได้เลย ไม่ต้องเลือกกลุ่มใหม่
+    state.group = null;
+    showDashboardView();
   } else {
-    const metas = groupFormMetas(g0);
-    if (metas[0]) showFormView(metas[0]); else showDashboardView();
+    const g0 = getGroup(state.group);
+    if (groupShowsSchool(g0)) {
+      showSchoolView();
+    } else {
+      const metas = groupFormMetas(g0);
+      if (metas[0]) showFormView(metas[0]); else showRecordsView();
+    }
+    openGroupModal();               // ขึ้นป๊อปอัปเลือก/ยืนยันกลุ่มเป้าหมายทุกครั้งที่เริ่มระบบ
   }
-  openGroupModal();                 // ขึ้นป๊อปอัปเลือก/ยืนยันกลุ่มเป้าหมายทุกครั้งที่เริ่มระบบ
 }
 
 // อัปเดตป้ายสถานะการเชื่อมต่อ + ถ้าออฟไลน์ ให้กดเพื่อ "ลองเชื่อมต่อใหม่" ได้
@@ -2309,8 +2371,8 @@ function buildNav() {
   const g = getGroup(state.group);
   const tgBtn = document.createElement("button");
   tgBtn.className = "nav-btn nav-btn--target";
-  tgBtn.innerHTML = icon("layers", "nav-ic") +
-    "<span>" + esc(g ? "กลุ่ม: " + g.name : "เลือกกลุ่มเป้าหมาย") + "</span>";
+  const label = state.isAdmin ? "ผู้ดูแลระบบ (ดูทั้งหมด)" : (g ? "กลุ่ม: " + g.name : "เลือกกลุ่มเป้าหมาย");
+  tgBtn.innerHTML = icon("layers", "nav-ic") + "<span>" + esc(label) + "</span>";
   tgBtn.addEventListener("click", openGroupModal);
   navEl.append(tgBtn);
 
@@ -2325,8 +2387,21 @@ function buildNav() {
   });
 
   navEl.append(navLabel("สรุปผล & รายงาน"));
-  navEl.append(navButton("แดชบอร์ดสรุปผล", "dashboard", () => showDashboardView(), "barChart"));
-  navEl.append(navButton("ข้อมูลที่บันทึก", "records", () => showRecordsView(), "database"));
+  // แดชบอร์ดสรุปผล — เฉพาะผู้ดูแลระบบ
+  if (state.isAdmin) {
+    navEl.append(navButton("แดชบอร์ดสรุปผล", "dashboard", () => showDashboardView(), "barChart"));
+  }
+  navEl.append(navButton(state.isAdmin ? "ข้อมูลที่บันทึก (ทุกโรงเรียน)" : "ข้อมูลที่บันทึก", "records", () => showRecordsView(), "database"));
+  // ออกจากระบบผู้ดูแล
+  if (state.isAdmin) {
+    navEl.append(navButton("ออกจากระบบผู้ดูแล", "logout", () => logoutAdmin(), "x"));
+  }
+}
+
+function logoutAdmin() {
+  state.isAdmin = false; saveAdmin(false);
+  buildNav();
+  openGroupModal();
 }
 
 function navLabel(text) {
@@ -2610,6 +2685,12 @@ function buildSchoolPicker(schools, current, onPick) {
 async function showDashboardView() {
   setActive("dashboard");
   viewEl.innerHTML = "";
+  // สิทธิ์: แดชบอร์ดสำหรับผู้ดูแลระบบเท่านั้น
+  if (!state.isAdmin) {
+    viewEl.append(header("แดชบอร์ดสรุปผล", "เฉพาะผู้ดูแลระบบ", "barChart"));
+    viewEl.append(infoBox("หน้านี้สำหรับผู้ดูแลระบบเท่านั้น — โปรดเข้าสู่ระบบผู้ดูแล (ปุ่มเลือกกลุ่มด้านบนซ้าย → ดูแบบฟอร์มทั้งหมด) เพื่อดูแดชบอร์ดสรุปผลของทุกโรงเรียน"));
+    return;
+  }
   viewEl.append(header("แดชบอร์ดสรุปผล", "ภาพรวมคะแนนการประเมินรายโรงเรียน จากทุกแบบฟอร์มที่บันทึก", "barChart"));
 
   const rows = await listSubmissions();
@@ -2716,9 +2797,21 @@ function statCard(label, value, unit, iconName) {
 async function showRecordsView() {
   setActive("records");
   viewEl.innerHTML = "";
-  viewEl.append(header("ข้อมูลที่บันทึก", state.offline ? "บันทึกในเครื่อง (localStorage) — แก้ไข/ลบ/ส่งออก PDF ได้" : "แสดงรายการจาก Firebase", "database"));
+  const sub = state.isAdmin
+    ? (state.offline ? "บันทึกในเครื่อง (localStorage) — แก้ไข/ลบ/ส่งออก PDF ได้" : "แสดงรายการจาก Firebase")
+    : "แสดงเฉพาะข้อมูลของโรงเรียนคุณ";
+  viewEl.append(header("ข้อมูลที่บันทึก", sub, "database"));
 
-  const rows = (await listSubmissions()).slice().sort((a, b) => {
+  // สิทธิ์: กลุ่มทั่วไปเห็นเฉพาะโรงเรียนของตนเอง (โรงเรียนที่เลือก/กรอกไว้)
+  const ownKey = schoolKey(state.school || {});
+  if (!state.isAdmin && !(state.school && state.school.school_name)) {
+    viewEl.append(infoBox("ยังไม่ได้ระบุโรงเรียนของคุณ — โปรดเลือกโรงเรียนในแบบฟอร์ม (หรือกรอกข้อมูลโรงเรียน) ก่อน จึงจะแสดงรายการที่บันทึกของโรงเรียนคุณ"));
+    return;
+  }
+
+  let rows = (await listSubmissions()).slice();
+  if (!state.isAdmin) rows = rows.filter(r => schoolKey(r.school || {}) === ownKey);
+  rows.sort((a, b) => {
     // จัดกลุ่มตามโรงเรียนก่อน แล้วเรียงแบบฟอร์มจากน้อยไปมาก (DLTV-01 → 07) ใหม่สุดอยู่บนเมื่อซ้ำ
     const sa = String(a.school?.school_name || ""), sb = String(b.school?.school_name || "");
     if (sa !== sb) return sa.localeCompare(sb, "th");
