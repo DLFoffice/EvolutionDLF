@@ -943,6 +943,56 @@ h1,h2,h3,h4{font-family:"Anuphan","Sarabun",sans-serif;font-weight:600;letter-sp
 .eval-table--rating tbody tr:has(input:checked):hover{background:rgba(91,103,216,.16)}
 
 /* ============================================================
+   🎨  หน้าข้อมูลที่บันทึก: ตารางมีสีสัน + หัวตารางเข้ม
+   ============================================================ */
+/* หัวตาราง = แถบอินดิโกเข้ม ตัวอักษรขาว */
+.records thead th{
+  background:linear-gradient(135deg,#343da6,#5159d8);color:#fff;
+  font-weight:600;letter-spacing:.01em;border-color:rgba(255,255,255,.16);
+  text-shadow:0 1px 2px rgba(20,26,70,.25);
+}
+.records thead th:first-child{border-top-left-radius:var(--radius)}
+.records thead th:last-child{border-top-right-radius:var(--radius)}
+
+/* แถวของโรงเรียนเดียวกัน = พื้นหลังสีเดียวกัน (วนสีพาสเทล 6 โทน) */
+.records tbody tr.sch-0 td{background:rgba(91,103,216,.07)}
+.records tbody tr.sch-1 td{background:rgba(22,194,160,.08)}
+.records tbody tr.sch-2 td{background:rgba(245,180,70,.10)}
+.records tbody tr.sch-3 td{background:rgba(236,140,170,.09)}
+.records tbody tr.sch-4 td{background:rgba(47,127,209,.08)}
+.records tbody tr.sch-5 td{background:rgba(124,92,214,.08)}
+.records tbody tr:hover td{filter:brightness(.97)}
+
+/* คอลัมน์คะแนนรวม = ป้ายสีตามระดับคะแนน */
+.records .col-score{text-align:center}
+.records .col-when{white-space:nowrap;color:var(--muted)}
+.score-pill{display:inline-block;min-width:60px;padding:3px 11px;border-radius:999px;
+  font-weight:700;font-size:12.5px;font-variant-numeric:tabular-nums;text-align:center}
+.score-pill.is-good{background:rgba(31,157,107,.16);color:var(--good)}
+.score-pill.is-ok{background:rgba(200,134,10,.18);color:var(--ok)}
+.score-pill.is-dev{background:rgba(210,83,58,.15);color:var(--dev)}
+.score-pill.is-none{background:var(--surface-2);color:var(--faint);font-weight:500}
+
+/* ปุ่มจัดการ = สีแยกตามการกระทำ */
+.records .row-actions .mini-btn{font-weight:600}
+.mini-btn--pdf{background:var(--accent-tint);color:var(--accent-text);border-color:rgba(91,103,216,.32)}
+.mini-btn--pdf:hover{background:rgba(91,103,216,.2);border-color:var(--accent)}
+.mini-btn--edit{background:var(--brand-tint);color:var(--brand-text);border-color:rgba(22,194,160,.32)}
+.mini-btn--edit:hover{background:rgba(22,194,160,.2);border-color:var(--brand)}
+.mini-btn--danger{background:rgba(210,83,58,.1);color:var(--dev);border-color:rgba(210,83,58,.32)}
+.mini-btn--danger:hover{background:rgba(210,83,58,.2);border-color:var(--dev)}
+
+/* ---- แดชบอร์ด: หัวการ์ดโรงเรียนเป็นแถบสีเข้ม (จุดสังเกตชัดเจน) ---- */
+.school-card__head{
+  background:linear-gradient(135deg,#2c3496,#4a53cf);
+  margin:-18px -20px 14px;padding:13px 20px;
+  border-bottom:none;border-radius:var(--radius) var(--radius) 0 0;
+  align-items:center;
+}
+.school-card__head h3{color:#fff;text-shadow:0 1px 2px rgba(18,22,60,.3)}
+.school-card__head .school-card__meta{color:rgba(255,255,255,.82)}
+
+/* ============================================================
    ป๊อปอัปเลือกกลุ่มเป้าหมาย (Target group chooser)
    ============================================================ */
 .nav-btn--target{background:var(--accent-tint);color:var(--accent-text);font-weight:600;margin-bottom:8px}
@@ -2439,19 +2489,27 @@ async function showRecordsView() {
         <th>คะแนนรวม</th><th>เวลาบันทึก</th><th>การจัดการ</th>
       </tr></thead>`;
     const tbody = document.createElement("tbody");
+    const schoolTint = {}; let tintSeq = 0;
     list.forEach(r => {
       const respondent = r.data?.teacher_name || r.data?.director_name || r.data?.origin_teacher_name ||
         (r.data?.teacher_names ? r.data.teacher_names.filter(Boolean).join(", ") : "") || "-";
-      const total = r.scores?.__total ? `${r.scores.__total.score}/${r.scores.__total.max}` : "-";
+      const t = r.scores?.__total;
+      const total = t ? `${t.score}/${t.max}` : "-";
+      const pct = t && t.max ? Math.round((t.score / t.max) * 100) : null;
+      const lvl = pct == null ? "none" : pct >= 80 ? "good" : pct >= 60 ? "ok" : "dev";
       const when = r.submittedAt ? new Date(r.submittedAt).toLocaleString("th-TH") : "-";
+      const sk = schoolKey(r.school || {});
+      if (!(sk in schoolTint)) schoolTint[sk] = tintSeq++ % 6;
       const tr = document.createElement("tr");
-      tr.innerHTML = `<td>${esc(r.formCode || r.formId)}</td>
+      tr.className = "sch-" + schoolTint[sk];
+      const scoreCell = `<td class="col-score"><span class="score-pill is-${lvl}">${t ? total : "—"}</span></td>`;
+      tr.innerHTML = `<td class="col-form">${esc(r.formCode || r.formId)}</td>
         <td>${esc(r.school?.school_name || "-")}</td>
-        <td>${esc(respondent)}</td><td>${total}</td><td>${esc(when)}</td>`;
+        <td>${esc(respondent)}</td>${scoreCell}<td class="col-when">${esc(when)}</td>`;
       const actions = document.createElement("td");
       actions.className = "row-actions";
-      actions.append(miniBtn("PDF", () => openRecordPDF(r)));
-      actions.append(miniBtn("แก้ไข", () => editRecord(r)));
+      actions.append(miniBtn("PDF", () => openRecordPDF(r), "mini-btn--pdf"));
+      actions.append(miniBtn("แก้ไข", () => editRecord(r), "mini-btn--edit"));
       actions.append(miniBtn("ลบ", () => removeRecord(r), "mini-btn--danger"));
       tr.append(actions);
       tbody.append(tr);
