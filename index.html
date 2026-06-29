@@ -958,16 +958,30 @@ h1,h2,h3,h4{font-family:"Anuphan","Sarabun",sans-serif;font-weight:600;letter-sp
 .records thead th:first-child{border-top-left-radius:var(--radius)}
 .records thead th:last-child{border-top-right-radius:var(--radius)}
 
-/* แถวของโรงเรียนเดียวกัน = พื้นหลังสีเดียวกัน (วนสีพาสเทล 6 โทน) */
-.records tbody tr.sch-0 td{background:rgba(91,103,216,.07)}
-.records tbody tr.sch-1 td{background:rgba(22,194,160,.08)}
-.records tbody tr.sch-2 td{background:rgba(245,180,70,.10)}
-.records tbody tr.sch-3 td{background:rgba(236,140,170,.09)}
-.records tbody tr.sch-4 td{background:rgba(47,127,209,.08)}
-.records tbody tr.sch-5 td{background:rgba(124,92,214,.08)}
-.records tbody tr:hover td{filter:brightness(.97)}
+/* แถวของโรงเรียนเดียวกัน = พื้นหลังสีเดียวกัน (วนสีพาสเทล 6 โทน) — แถวทั้งแถวอ่อน ๆ */
+.records tbody tr.sch-0 td{background:rgba(91,103,216,.05)}
+.records tbody tr.sch-1 td{background:rgba(22,194,160,.06)}
+.records tbody tr.sch-2 td{background:rgba(245,180,70,.07)}
+.records tbody tr.sch-3 td{background:rgba(236,140,170,.06)}
+.records tbody tr.sch-4 td{background:rgba(47,127,209,.06)}
+.records tbody tr.sch-5 td{background:rgba(124,92,214,.06)}
+/* เน้นสีเข้มขึ้นเฉพาะคอลัมน์ "แบบฟอร์ม" และ "โรงเรียน" เพื่อให้เห็นการแบ่งโรงเรียนชัด */
+.records tbody tr.sch-0 td.col-form,.records tbody tr.sch-0 td.col-school{background:rgba(91,103,216,.18);box-shadow:inset 3px 0 0 rgba(91,103,216,.55)}
+.records tbody tr.sch-1 td.col-form,.records tbody tr.sch-1 td.col-school{background:rgba(22,194,160,.2);box-shadow:inset 3px 0 0 rgba(22,194,160,.6)}
+.records tbody tr.sch-2 td.col-form,.records tbody tr.sch-2 td.col-school{background:rgba(245,180,70,.24);box-shadow:inset 3px 0 0 rgba(230,160,40,.7)}
+.records tbody tr.sch-3 td.col-form,.records tbody tr.sch-3 td.col-school{background:rgba(236,140,170,.22);box-shadow:inset 3px 0 0 rgba(225,110,150,.6)}
+.records tbody tr.sch-4 td.col-form,.records tbody tr.sch-4 td.col-school{background:rgba(47,127,209,.2);box-shadow:inset 3px 0 0 rgba(47,127,209,.6)}
+.records tbody tr.sch-5 td.col-form,.records tbody tr.sch-5 td.col-school{background:rgba(124,92,214,.2);box-shadow:inset 3px 0 0 rgba(124,92,214,.6)}
+.records tbody td.col-form{font-weight:700}
+.records tbody td.col-school{font-weight:600}
+/* ---- ลูกเล่น hover แถว: ฟิล์มสีอ่อนนุ่ม + แถบแอคเซนต์เลื่อนเข้า + ยกตัวเล็กน้อย ---- */
 .records tbody tr.rec-row{cursor:pointer}
-.records tbody tr.rec-row:hover td{filter:brightness(.94)}
+.records tbody tr.rec-row td{transition:box-shadow .26s var(--ease),filter .26s var(--ease),transform .26s var(--ease)}
+.records tbody tr.rec-row:hover td{filter:saturate(1.12);box-shadow:inset 0 0 0 9999px rgba(91,103,216,.09);transform:translateY(-1px)}
+.records tbody tr.rec-row:hover td.col-form{box-shadow:inset 0 0 0 9999px rgba(91,103,216,.09),inset 5px 0 0 var(--accent)}
+.records tbody tr.rec-row:hover td.col-when{color:var(--ink)}
+.records tbody tr.rec-row:hover .score-pill{transform:scale(1.05);transition:transform .26s var(--ease-back)}
+.records tbody tr.rec-row:hover .mini-btn--view{background:var(--accent);color:#fff;border-color:var(--accent)}
 .mini-btn--view{background:var(--sky-tint);color:var(--sky);border-color:rgba(47,127,209,.32)}
 .mini-btn--view:hover{background:rgba(47,127,209,.2);border-color:var(--sky)}
 
@@ -975,7 +989,7 @@ h1,h2,h3,h4{font-family:"Anuphan","Sarabun",sans-serif;font-weight:600;letter-sp
 .records .col-score{text-align:center}
 .records .col-when{white-space:nowrap;color:var(--muted)}
 .score-pill{display:inline-block;min-width:60px;padding:3px 11px;border-radius:999px;
-  font-weight:700;font-size:12.5px;font-variant-numeric:tabular-nums;text-align:center}
+  font-weight:700;font-size:12.5px;font-variant-numeric:tabular-nums;text-align:center;transition:transform .2s var(--ease)}
 .score-pill.is-good{background:rgba(31,157,107,.16);color:var(--good)}
 .score-pill.is-ok{background:rgba(200,134,10,.18);color:var(--ok)}
 .score-pill.is-dev{background:rgba(210,83,58,.15);color:var(--dev)}
@@ -1186,6 +1200,11 @@ h1,h2,h3,h4{font-family:"Anuphan","Sarabun",sans-serif;font-weight:600;letter-sp
 .rv-body .p-kv td.p-label{width:42%;color:var(--muted)}
 .rv-body .p-sug{font-size:12px;color:var(--muted);margin-top:3px}
 .rv-body .p-subtotal{text-align:right;font-weight:600;font-size:13px;color:var(--brand-text);margin:2px 0 10px}
+.rv-body .p-nested{width:100%;border-collapse:collapse;font-size:12px;margin:2px 0}
+.rv-body .p-nested th,.rv-body .p-nested td{border:1px solid var(--line);padding:3px 7px;text-align:left}
+.rv-body .p-nested thead th{background:var(--surface-2);font-weight:600;text-align:center}
+.rv-body .p-nested td.p-num,.rv-body .p-nested th.p-num{text-align:center}
+.rv-body .p-muted{color:var(--faint)}
 @media (max-width:560px){ .rv-meta{gap:8px 14px} .rv-body,.rv-modal__head,.rv-foot{padding-left:16px;padding-right:16px} }
 </style>
 </head>
@@ -2366,7 +2385,7 @@ async function showFormView(formMeta, editRecord = null) {
   ));
 
   // โหมดแก้ไข: ใช้ข้อมูลโรงเรียนของรายการนั้น
-  const schoolForThis = editRecord ? (editRecord.school || {}) : { ...state.school };
+  let schoolForThis = editRecord ? (editRecord.school || {}) : { ...state.school };
   const groupNeedsSchool = (getGroup(state.group) || {}).needsSchool !== false;
   if (!editRecord && SCHOOL_PICK_FORMS.has(schema.id)) {
     // ช่องค้นหา/เลือกโรงเรียนจากที่บันทึกข้อมูลพื้นฐานไว้
@@ -2376,8 +2395,18 @@ async function showFormView(formMeta, editRecord = null) {
       state.school = s;
       if (state.current) state.current.school = s;
     }));
-  } else if (!editRecord && groupNeedsSchool && !state.school.school_name) {
-    viewEl.append(infoBox("ยังไม่ได้กรอกข้อมูลโรงเรียน — แนะนำให้กรอกที่เมนู “ข้อมูลโรงเรียน” ก่อน เพื่อแนบไปกับการบันทึก"));
+  } else if (!editRecord) {
+    // ฟอร์มที่ไม่ต้องเลือกโรงเรียน (เช่น DLTV-07) — ใช้โรงเรียนที่บันทึกไว้แล้วอัตโนมัติ
+    if (groupNeedsSchool && !state.school.school_name) {
+      const dir = loadSchoolDir();
+      const latest = Object.values(dir).sort((a, b) => String(b._savedAt || "").localeCompare(String(a._savedAt || "")))[0];
+      if (latest) { state.school = { ...latest }; schoolForThis = { ...latest }; }
+    }
+    if (groupNeedsSchool && state.school.school_name) {
+      viewEl.append(infoBox(`ใช้ข้อมูลโรงเรียน “${esc(state.school.school_name)}” ที่บันทึกไว้แล้วโดยอัตโนมัติ`));
+    } else if (groupNeedsSchool) {
+      viewEl.append(infoBox("ยังไม่ได้กรอกข้อมูลโรงเรียน — แนะนำให้กรอกที่เมนู “ข้อมูลโรงเรียน” ก่อน เพื่อแนบไปกับการบันทึก"));
+    }
   }
   if (schema.instruction) viewEl.append(infoBox(schema.instruction));
 
@@ -2471,8 +2500,8 @@ function schoolKey(s) { return (s?.school_code || "") + "|" + (s?.school_name ||
 // คลังโรงเรียน — ค้นหา/เลือกโรงเรียนที่บันทึกข้อมูลพื้นฐานไว้
 // ============================================================
 const SCHOOL_DIR_KEY = "dltv_school_directory_v1";
-// แบบฟอร์มที่ต้องแนบข้อมูลโรงเรียน (มีช่องค้นหา/เลือกโรงเรียน)
-const SCHOOL_PICK_FORMS = new Set(["dltv01", "dltv02", "dltv03", "dltv05", "dltv07"]);
+// แบบฟอร์มที่ต้องแสดงช่องค้นหา/เลือกโรงเรียน (DLTV-07 ไม่ต้อง — ใช้โรงเรียนที่บันทึกไว้แล้วอัตโนมัติ)
+const SCHOOL_PICK_FORMS = new Set(["dltv01", "dltv02", "dltv03", "dltv05"]);
 
 function loadSchoolDir() {
   try { return JSON.parse(localStorage.getItem(SCHOOL_DIR_KEY) || "{}"); } catch (e) { return {}; }
@@ -2651,8 +2680,8 @@ async function showDashboardView() {
             `<div class="dash-row__pct lvl-${lvl}">${pct}%</div>`
           : `<div class="dash-row__score">—</div><div class="dash-bar"></div><div class="dash-row__pct">ไม่มีคะแนน</div>`) +
         icon("chevronRight", "dash-row__go");
-      row.title = "คลิกเพื่อดู/แก้ไขรายการล่าสุด";
-      row.addEventListener("click", () => editRecord(latest));
+      row.title = "คลิกเพื่อดูพรีวิวรายการล่าสุด";
+      row.addEventListener("click", () => showRecordPreview(latest));
       card.append(row);
 
       // รายละเอียดองค์ประกอบ (ถ้ามีหลาย section ที่ให้คะแนน)
@@ -2694,7 +2723,14 @@ async function showRecordsView() {
   viewEl.innerHTML = "";
   viewEl.append(header("ข้อมูลที่บันทึก", state.offline ? "บันทึกในเครื่อง (localStorage) — แก้ไข/ลบ/ส่งออก PDF ได้" : "แสดงรายการจาก Firebase", "database"));
 
-  const rows = (await listSubmissions()).slice().sort((a, b) => String(b.submittedAt || "").localeCompare(String(a.submittedAt || "")));
+  const rows = (await listSubmissions()).slice().sort((a, b) => {
+    // จัดกลุ่มตามโรงเรียนก่อน แล้วเรียงแบบฟอร์มจากน้อยไปมาก (DLTV-01 → 07) ใหม่สุดอยู่บนเมื่อซ้ำ
+    const sa = String(a.school?.school_name || ""), sb = String(b.school?.school_name || "");
+    if (sa !== sb) return sa.localeCompare(sb, "th");
+    const fa = String(a.formCode || a.formId || ""), fb = String(b.formCode || b.formId || "");
+    if (fa !== fb) return fa.localeCompare(fb, "en", { numeric: true });
+    return String(b.submittedAt || "").localeCompare(String(a.submittedAt || ""));
+  });
 
   // ตัวกรองตามแบบฟอร์ม
   const filterBar = document.createElement("div");
@@ -2736,7 +2772,7 @@ async function showRecordsView() {
       tr.title = "คลิกเพื่อดูพรีวิวรายละเอียด";
       const scoreCell = `<td class="col-score"><span class="score-pill is-${lvl}">${t ? total : "—"}</span></td>`;
       tr.innerHTML = `<td class="col-form">${esc(r.formCode || r.formId)}</td>
-        <td>${esc(r.school?.school_name || "-")}</td>
+        <td class="col-school">${esc(r.school?.school_name || "-")}</td>
         <td>${esc(respondent)}</td>${scoreCell}<td class="col-when">${esc(when)}</td>`;
       tr.addEventListener("click", () => showRecordPreview(r));
       const actions = document.createElement("td");
@@ -2921,7 +2957,8 @@ function buildRecordBody(schema, data, scores) {
       let rows = "";
       (sec.fields || []).forEach(f => {
         if (f.type === "heading" || f.type === "note") return;
-        rows += `<tr><td class="p-label">${esc(f.label)}</td><td>${esc(fmtValue(f, data[f.id]))}</td></tr>`;
+        const valHTML = f.type === "table" ? renderTableValue(f, data[f.id]) : esc(fmtValue(f, data[f.id]));
+        rows += `<tr><td class="p-label">${esc(f.label)}</td><td>${valHTML}</td></tr>`;
       });
       parts.push(`<table class="p-table p-kv"><tbody>${rows}</tbody></table>`);
     }
@@ -2929,6 +2966,38 @@ function buildRecordBody(schema, data, scores) {
   const totalHTML = scores.__total
     ? `<div class="p-total">คะแนนรวมทั้งสิ้น ${scores.__total.score} / ${scores.__total.max} คะแนน</div>` : "";
   return { body: parts.join(""), totalHTML };
+}
+
+// แปลงข้อมูลฟิลด์แบบตาราง (เช่น จำนวนนักเรียน/อุปกรณ์รายชั้น) ให้เป็นตารางย่อยที่อ่านได้
+function renderTableValue(f, v) {
+  if (!v || typeof v !== "object") return "-";
+  const cols = f.columns || [];
+  const hasVal = cell => {
+    if (cell == null || cell === "") return false;
+    if (typeof cell === "object") return Object.values(cell).some(x => x != null && x !== "");
+    return true;
+  };
+  const rowKeys = (f.rows && f.rows.length ? f.rows : Object.keys(v)).filter(rk => hasVal(v[rk]));
+  if (!rowKeys.length) return "<span class=\"p-muted\">— ไม่ได้กรอก —</span>";
+  if (cols.length > 1) {
+    const head = "<th></th>" + cols.map(c => `<th class="p-num">${esc(c.label || c.id)}</th>`).join("");
+    const body = rowKeys.map(rk => {
+      const cell = v[rk] || {};
+      const tds = cols.map(c => {
+        const cv = cell[c.id];
+        return `<td class="p-num">${cv != null && cv !== "" ? esc(cv) : "-"}</td>`;
+      }).join("");
+      return `<tr><td>${esc(rk)}</td>${tds}</tr>`;
+    }).join("");
+    return `<table class="p-nested"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+  }
+  // ตารางคอลัมน์เดียว → แสดงเป็นรายการสั้น
+  const col = cols[0];
+  return rowKeys.map(rk => {
+    const cell = v[rk];
+    const cv = (cell && typeof cell === "object") ? (col ? cell[col.id] : Object.values(cell).join("/")) : cell;
+    return `${esc(rk)}: <b>${esc(cv ?? "-")}</b>`;
+  }).join(" · ");
 }
 
 function exportPDF({ schema, school, data, scores }) {
@@ -2971,7 +3040,19 @@ function fmtValue(f, v) {
   if (Array.isArray(v)) return v.join(", ") || "-";
   if (typeof v === "object") {
     if ("score" in v) return v.score == null ? "-" : String(v.score);
-    return Object.entries(v).map(([k, val]) => (val ? k + ": " + val : "")).filter(Boolean).join(", ") || "-";
+    // ฟิลด์ inline (เช่น ปี/เดือน) — ใช้ป้าย prefix/suffix ของ parts ถ้ามี
+    const partMap = {};
+    (f && f.parts ? f.parts : []).forEach(p => { partMap[p.id] = p; });
+    return Object.entries(v).map(([k, val]) => {
+      if (val == null || val === "") return "";
+      if (typeof val === "object") {
+        const inner = Object.entries(val).filter(([, x]) => x != null && x !== "").map(([ck, cv]) => `${ck}: ${cv}`).join(", ");
+        return inner ? `${k} (${inner})` : "";
+      }
+      const p = partMap[k];
+      if (p) return `${p.prefix ? p.prefix + " " : ""}${val}${p.suffix ? " " + p.suffix : ""}`;
+      return `${k}: ${val}`;
+    }).filter(Boolean).join(" · ") || "-";
   }
   return String(v);
 }
@@ -3006,6 +3087,11 @@ body{font-family:"Sarabun",system-ui,"TH Sarabun New",sans-serif;color:#181b17;f
 .p-num{text-align:center;white-space:nowrap;width:64px}
 .p-sub td{background:#f3f4f1;font-weight:600}
 .p-kv .p-label{width:42%;font-weight:600;background:#fafafa}
+.p-nested{width:100%;border-collapse:collapse;font-size:11px;margin:2px 0}
+.p-nested th,.p-nested td{border:1px solid #bbb;padding:2px 6px;text-align:left}
+.p-nested thead th{background:#f3f4f1;font-weight:600;text-align:center}
+.p-nested .p-num{text-align:center;width:auto}
+.p-muted{color:#888}
 .p-sug{color:#666;font-size:11px;margin-top:2px}
 .p-subtotal{text-align:right;font-weight:600;margin:2px 0 8px;color:#265a42}
 .p-total{font-weight:700;font-size:14px;background:#ecf2ee;border:1px solid #2f6b4f;border-radius:6px;padding:8px 12px;margin:14px 0;text-align:center}
