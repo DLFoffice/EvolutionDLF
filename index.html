@@ -958,29 +958,20 @@ h1,h2,h3,h4{font-family:"Anuphan","Sarabun",sans-serif;font-weight:600;letter-sp
 .records thead th:first-child{border-top-left-radius:var(--radius)}
 .records thead th:last-child{border-top-right-radius:var(--radius)}
 
-/* แถวของโรงเรียนเดียวกัน = พื้นหลังสีเดียวกัน (วนสีพาสเทล 6 โทน) — แถวทั้งแถวอ่อน ๆ */
-.records tbody tr.sch-0 td{background:rgba(91,103,216,.05)}
-.records tbody tr.sch-1 td{background:rgba(22,194,160,.06)}
-.records tbody tr.sch-2 td{background:rgba(245,180,70,.07)}
-.records tbody tr.sch-3 td{background:rgba(236,140,170,.06)}
-.records tbody tr.sch-4 td{background:rgba(47,127,209,.06)}
-.records tbody tr.sch-5 td{background:rgba(124,92,214,.06)}
-/* เน้นสีเข้มขึ้นเฉพาะคอลัมน์ "แบบฟอร์ม" และ "โรงเรียน" เพื่อให้เห็นการแบ่งโรงเรียนชัด */
-.records tbody tr.sch-0 td.col-form,.records tbody tr.sch-0 td.col-school{background:rgba(91,103,216,.18);box-shadow:inset 3px 0 0 rgba(91,103,216,.55)}
-.records tbody tr.sch-1 td.col-form,.records tbody tr.sch-1 td.col-school{background:rgba(22,194,160,.2);box-shadow:inset 3px 0 0 rgba(22,194,160,.6)}
-.records tbody tr.sch-2 td.col-form,.records tbody tr.sch-2 td.col-school{background:rgba(245,180,70,.24);box-shadow:inset 3px 0 0 rgba(230,160,40,.7)}
-.records tbody tr.sch-3 td.col-form,.records tbody tr.sch-3 td.col-school{background:rgba(236,140,170,.22);box-shadow:inset 3px 0 0 rgba(225,110,150,.6)}
-.records tbody tr.sch-4 td.col-form,.records tbody tr.sch-4 td.col-school{background:rgba(47,127,209,.2);box-shadow:inset 3px 0 0 rgba(47,127,209,.6)}
-.records tbody tr.sch-5 td.col-form,.records tbody tr.sch-5 td.col-school{background:rgba(124,92,214,.2);box-shadow:inset 3px 0 0 rgba(124,92,214,.6)}
+/* แถวของโรงเรียนเดียวกัน = พื้นหลังสีเดียวกันทั้งแถว (วนสี 6 โทน) — เรียบ สม่ำเสมอ ไม่มีแถบ */
+.records tbody tr.sch-0 td{background:rgba(91,103,216,.09)}
+.records tbody tr.sch-1 td{background:rgba(22,194,160,.10)}
+.records tbody tr.sch-2 td{background:rgba(245,180,70,.13)}
+.records tbody tr.sch-3 td{background:rgba(236,140,170,.11)}
+.records tbody tr.sch-4 td{background:rgba(47,127,209,.10)}
+.records tbody tr.sch-5 td{background:rgba(124,92,214,.10)}
 .records tbody td.col-form{font-weight:700}
 .records tbody td.col-school{font-weight:600}
-/* ---- ลูกเล่น hover แถว: ฟิล์มสีอ่อนนุ่ม + แถบแอคเซนต์เลื่อนเข้า + ยกตัวเล็กน้อย ---- */
+/* ---- hover แถว: ไฮไลต์อ่อนเรียบ ๆ + ยกตัวเล็กน้อย (ไม่มีแถบสี ไม่ทับซ้อนสี) ---- */
 .records tbody tr.rec-row{cursor:pointer}
-.records tbody tr.rec-row td{transition:box-shadow .26s var(--ease),filter .26s var(--ease),transform .26s var(--ease)}
-.records tbody tr.rec-row:hover td{filter:saturate(1.12);box-shadow:inset 0 0 0 9999px rgba(91,103,216,.09);transform:translateY(-1px)}
-.records tbody tr.rec-row:hover td.col-form{box-shadow:inset 0 0 0 9999px rgba(91,103,216,.09),inset 5px 0 0 var(--accent)}
-.records tbody tr.rec-row:hover td.col-when{color:var(--ink)}
-.records tbody tr.rec-row:hover .score-pill{transform:scale(1.05);transition:transform .26s var(--ease-back)}
+.records tbody tr.rec-row td{transition:box-shadow .24s var(--ease),transform .24s var(--ease)}
+.records tbody tr.rec-row:hover td{box-shadow:inset 0 0 0 9999px rgba(91,103,216,.07);transform:translateY(-1px)}
+.records tbody tr.rec-row:hover .score-pill{transform:scale(1.05);transition:transform .24s var(--ease-back)}
 .records tbody tr.rec-row:hover .mini-btn--view{background:var(--accent);color:#fff;border-color:var(--accent)}
 .mini-btn--view{background:var(--sky-tint);color:var(--sky);border-color:rgba(47,127,209,.32)}
 .mini-btn--view:hover{background:rgba(47,127,209,.2);border-color:var(--sky)}
@@ -2093,7 +2084,8 @@ const TARGET_GROUPS = [
     name: "นักเรียน",
     icon: "smile",
     color: "amber",
-    hint: "กรอกข้อมูลโรงเรียน แล้วทำแบบสอบถามนักเรียน DLTV-07",
+    entersSchool: false,
+    hint: "ค้นหาเลือกโรงเรียนที่บันทึกไว้ แล้วทำแบบสอบถามนักเรียน DLTV-07",
     forms: ["dltv07"]
   },
   {
@@ -2108,6 +2100,8 @@ const TARGET_GROUPS = [
 ];
 
 function getGroup(id) { return TARGET_GROUPS.find(g => g.id === id) || null; }
+// กลุ่มนี้ต้องกรอก "ข้อมูลโรงเรียน" เองหรือไม่ (กลุ่มนักเรียนเลือกจากที่บันทึกไว้แทน จึงไม่ต้องกรอก)
+function groupShowsSchool(g) { return g ? (g.needsSchool !== false && g.entersSchool !== false) : true; }
 function loadSavedGroup() { try { return localStorage.getItem(GROUP_LS_KEY) || null; } catch (e) { return null; } }
 function saveGroupChoice(id) {
   try { id ? localStorage.setItem(GROUP_LS_KEY, id) : localStorage.removeItem(GROUP_LS_KEY); } catch (e) { /* ไม่บล็อกการทำงาน */ }
@@ -2140,11 +2134,12 @@ function renderGroupStep1() {
   let cards = "";
   TARGET_GROUPS.forEach(g => {
     const codes = g.forms.map(fid => (state.forms.find(f => f.id === fid) || {}).code || fid);
-    const list = ((g.needsSchool !== false ? ["ข้อมูลโรงเรียน"] : []).concat(codes)).join(" · ");
+    const steps = (groupShowsSchool(g) ? ["ข้อมูลโรงเรียน"] : []).concat(codes);
+    const list = steps.join(" · ");
     cards += `<button type="button" class="group-card group-card--${g.color || "teal"}" data-group="${g.id}">
       <span class="group-card__ic">${icon(g.icon)}</span>
       <span class="group-card__name">${esc(g.name)}</span>
-      <span class="group-card__forms">ข้อมูลโรงเรียน · ${esc(list)}</span>
+      <span class="group-card__forms">${esc(list)}</span>
       <span class="group-card__cta">เลือกกลุ่มนี้ ${icon("chevronRight")}</span>
     </button>`;
   });
@@ -2179,8 +2174,8 @@ function renderGroupStep2(id) {
   const g = getGroup(id);
   if (!g) { renderGroupStep1(); return; }
 
-  // ขั้นแรก = ข้อมูลโรงเรียน (ยกเว้นกลุ่มที่ไม่ต้องกรอก เช่น ครูโรงเรียนต้นทาง)
-  const needSchool = g.needsSchool !== false;
+  // ขั้นแรก = ข้อมูลโรงเรียน (ยกเว้นกลุ่มที่เลือกจากที่บันทึกไว้/ไม่ต้องกรอก เช่น นักเรียน, ครูต้นทาง)
+  const needSchool = groupShowsSchool(g);
   let steps = "";
   let n = 0;
   if (needSchool) {
@@ -2249,7 +2244,13 @@ async function boot() {
 
   state.group = loadSavedGroup();   // คืนค่ากลุ่มเป้าหมายที่เคยเลือกไว้ (ถ้ามี)
   buildNav();
-  showSchoolView();
+  const g0 = getGroup(state.group);
+  if (groupShowsSchool(g0)) {
+    showSchoolView();
+  } else {
+    const metas = groupFormMetas(g0);
+    if (metas[0]) showFormView(metas[0]); else showDashboardView();
+  }
   openGroupModal();                 // ขึ้นป๊อปอัปเลือก/ยืนยันกลุ่มเป้าหมายทุกครั้งที่เริ่มระบบ
 }
 
@@ -2314,7 +2315,7 @@ function buildNav() {
   navEl.append(tgBtn);
 
   // เมนูข้อมูลโรงเรียน — แสดงเมื่อกลุ่มต้องกรอก (หรือยังไม่เลือกกลุ่ม/โหมดผู้ดูแล)
-  if (!g || g.needsSchool !== false) {
+  if (groupShowsSchool(g)) {
     navEl.append(navButton("ข้อมูลโรงเรียน", "school", () => showSchoolView(), "school"));
   }
 
@@ -2385,7 +2386,7 @@ async function showFormView(formMeta, editRecord = null) {
   ));
 
   // โหมดแก้ไข: ใช้ข้อมูลโรงเรียนของรายการนั้น
-  let schoolForThis = editRecord ? (editRecord.school || {}) : { ...state.school };
+  const schoolForThis = editRecord ? (editRecord.school || {}) : { ...state.school };
   const groupNeedsSchool = (getGroup(state.group) || {}).needsSchool !== false;
   if (!editRecord && SCHOOL_PICK_FORMS.has(schema.id)) {
     // ช่องค้นหา/เลือกโรงเรียนจากที่บันทึกข้อมูลพื้นฐานไว้
@@ -2395,18 +2396,8 @@ async function showFormView(formMeta, editRecord = null) {
       state.school = s;
       if (state.current) state.current.school = s;
     }));
-  } else if (!editRecord) {
-    // ฟอร์มที่ไม่ต้องเลือกโรงเรียน (เช่น DLTV-07) — ใช้โรงเรียนที่บันทึกไว้แล้วอัตโนมัติ
-    if (groupNeedsSchool && !state.school.school_name) {
-      const dir = loadSchoolDir();
-      const latest = Object.values(dir).sort((a, b) => String(b._savedAt || "").localeCompare(String(a._savedAt || "")))[0];
-      if (latest) { state.school = { ...latest }; schoolForThis = { ...latest }; }
-    }
-    if (groupNeedsSchool && state.school.school_name) {
-      viewEl.append(infoBox(`ใช้ข้อมูลโรงเรียน “${esc(state.school.school_name)}” ที่บันทึกไว้แล้วโดยอัตโนมัติ`));
-    } else if (groupNeedsSchool) {
-      viewEl.append(infoBox("ยังไม่ได้กรอกข้อมูลโรงเรียน — แนะนำให้กรอกที่เมนู “ข้อมูลโรงเรียน” ก่อน เพื่อแนบไปกับการบันทึก"));
-    }
+  } else if (!editRecord && groupNeedsSchool && !state.school.school_name) {
+    viewEl.append(infoBox("ยังไม่ได้กรอกข้อมูลโรงเรียน — แนะนำให้กรอกที่เมนู “ข้อมูลโรงเรียน” ก่อน เพื่อแนบไปกับการบันทึก"));
   }
   if (schema.instruction) viewEl.append(infoBox(schema.instruction));
 
@@ -2500,8 +2491,8 @@ function schoolKey(s) { return (s?.school_code || "") + "|" + (s?.school_name ||
 // คลังโรงเรียน — ค้นหา/เลือกโรงเรียนที่บันทึกข้อมูลพื้นฐานไว้
 // ============================================================
 const SCHOOL_DIR_KEY = "dltv_school_directory_v1";
-// แบบฟอร์มที่ต้องแสดงช่องค้นหา/เลือกโรงเรียน (DLTV-07 ไม่ต้อง — ใช้โรงเรียนที่บันทึกไว้แล้วอัตโนมัติ)
-const SCHOOL_PICK_FORMS = new Set(["dltv01", "dltv02", "dltv03", "dltv05"]);
+// แบบฟอร์มที่ต้องแสดงช่องค้นหา/เลือกโรงเรียน
+const SCHOOL_PICK_FORMS = new Set(["dltv01", "dltv02", "dltv03", "dltv05", "dltv07"]);
 
 function loadSchoolDir() {
   try { return JSON.parse(localStorage.getItem(SCHOOL_DIR_KEY) || "{}"); } catch (e) { return {}; }
@@ -2569,9 +2560,13 @@ function buildSchoolPicker(schools, current, onPick) {
         onPick(null); renderSelected(null); input.value = ""; input.focus();
       };
     } else {
+      const canEnter = groupShowsSchool(getGroup(state.group));
+      const emptyMsg = canEnter
+        ? "ยังไม่มีโรงเรียนในระบบ — กรุณากรอกที่เมนู “ข้อมูลโรงเรียน” แล้วกดบันทึกก่อน จึงจะค้นหาเลือกได้"
+        : "ยังไม่มีโรงเรียนในระบบ — โปรดให้ครู/ผู้ดูแลบันทึกข้อมูลพื้นฐานโรงเรียนก่อน จึงจะค้นหาเลือกได้";
       selEl.innerHTML = schools.length
         ? `<div class="sp-empty">ยังไม่ได้เลือกโรงเรียน — พิมพ์ชื่อโรงเรียนด้านบนเพื่อค้นหา</div>`
-        : `<div class="sp-empty sp-empty--warn">ยังไม่มีโรงเรียนในระบบ — กรุณากรอกที่เมนู “ข้อมูลโรงเรียน” แล้วกดบันทึกก่อน จึงจะค้นหาเลือกได้</div>`;
+        : `<div class="sp-empty sp-empty--warn">${emptyMsg}</div>`;
     }
   }
 
