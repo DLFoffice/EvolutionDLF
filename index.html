@@ -993,6 +993,51 @@ h1,h2,h3,h4{font-family:"Anuphan","Sarabun",sans-serif;font-weight:600;letter-sp
 .school-card__head .school-card__meta{color:rgba(255,255,255,.82)}
 
 /* ============================================================
+   🔎  กล่องค้นหา/เลือกโรงเรียนในแบบฟอร์ม
+   ============================================================ */
+.school-picker{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow-md);padding:16px 18px;margin-bottom:16px;position:relative;overflow:visible;
+}
+.school-picker__head{display:flex;align-items:center;gap:8px;font-weight:600;color:var(--ink);margin-bottom:10px}
+.school-picker__head .sp-ic{width:18px;height:18px;color:var(--accent)}
+.school-picker__search{position:relative}
+.school-picker__input{width:100%}
+.school-picker__list{
+  position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:30;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);
+  box-shadow:var(--shadow-lg);max-height:300px;overflow:auto;padding:6px;
+}
+.sp-opt{
+  display:flex;flex-direction:column;gap:2px;width:100%;text-align:left;cursor:pointer;
+  background:transparent;border:0;border-radius:9px;padding:9px 11px;font:inherit;color:var(--ink);
+  transition:background .12s;
+}
+.sp-opt:hover{background:var(--accent-tint)}
+.sp-opt__name{font-weight:600;font-size:14px}
+.sp-opt__meta{font-size:12px;color:var(--muted)}
+.sp-opt--none{color:var(--muted);font-size:13px;padding:10px 11px;cursor:default}
+.school-picker__selected{margin-top:12px}
+.sp-empty{font-size:13px;color:var(--muted);background:var(--surface-2);border:1px dashed var(--line);
+  border-radius:var(--radius-sm);padding:10px 12px}
+.sp-empty--warn{color:#9a6a16;background:#fdf3e3;border-color:#e7d3a8}
+.sp-chip{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  background:var(--accent-tint);border:1px solid rgba(91,103,216,.3);border-radius:var(--radius-sm);
+  padding:11px 14px;
+}
+.sp-chip__name{display:flex;align-items:center;gap:7px;font-weight:700;color:var(--accent-text);font-size:15px}
+.sp-chip__ic{width:17px;height:17px;color:var(--brand)}
+.sp-chip__meta{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:5px;font-size:12.5px;color:var(--muted)}
+.sp-chip__meta b{color:var(--ink);font-weight:600}
+.sp-chip__clear{
+  font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap;
+  background:#fff;color:var(--accent-text);border:1px solid rgba(91,103,216,.4);
+  border-radius:8px;padding:6px 12px;transition:background .12s,border-color .12s;
+}
+.sp-chip__clear:hover{background:rgba(91,103,216,.12);border-color:var(--accent)}
+
+/* ============================================================
    ป๊อปอัปเลือกกลุ่มเป้าหมาย (Target group chooser)
    ============================================================ */
 .nav-btn--target{background:var(--accent-tint);color:var(--accent-text);font-weight:600;margin-bottom:8px}
@@ -2229,8 +2274,10 @@ function showSchoolView() {
   const bar = actionBar();
   bar.append(primaryBtn("บันทึกข้อมูลโรงเรียน", () => {
     const { data } = ctrl.collect();
+    if (!data.school_name) { toast("กรุณากรอกชื่อโรงเรียนก่อนบันทึก", "warn"); return; }
     state.school = data;
-    toast("บันทึกข้อมูลโรงเรียนในเครื่องแล้ว ใช้ร่วมกับทุกแบบฟอร์ม");
+    upsertSchool(data);
+    toast("บันทึกข้อมูลโรงเรียนแล้ว · ค้นหาเลือกใช้ในแบบฟอร์มอื่นได้");
   }, "save"));
   viewEl.append(bar);
 }
@@ -2255,9 +2302,17 @@ async function showFormView(formMeta, editRecord = null) {
   ));
 
   // โหมดแก้ไข: ใช้ข้อมูลโรงเรียนของรายการนั้น
-  const schoolForThis = editRecord ? (editRecord.school || {}) : state.school;
+  const schoolForThis = editRecord ? (editRecord.school || {}) : { ...state.school };
   const groupNeedsSchool = (getGroup(state.group) || {}).needsSchool !== false;
-  if (!editRecord && groupNeedsSchool && !state.school.school_name) {
+  if (!editRecord && SCHOOL_PICK_FORMS.has(schema.id)) {
+    // ช่องค้นหา/เลือกโรงเรียนจากที่บันทึกข้อมูลพื้นฐานไว้
+    const schools = await getSchoolDirectory();
+    viewEl.append(buildSchoolPicker(schools, state.school, (picked) => {
+      const s = picked ? { ...picked } : {};
+      state.school = s;
+      if (state.current) state.current.school = s;
+    }));
+  } else if (!editRecord && groupNeedsSchool && !state.school.school_name) {
     viewEl.append(infoBox("ยังไม่ได้กรอกข้อมูลโรงเรียน — แนะนำให้กรอกที่เมนู “ข้อมูลโรงเรียน” ก่อน เพื่อแนบไปกับการบันทึก"));
   }
   if (schema.instruction) viewEl.append(infoBox(schema.instruction));
@@ -2277,7 +2332,7 @@ async function showFormView(formMeta, editRecord = null) {
   btns.className = "savebar__btns";
   btns.append(ghostBtn("ส่งออก PDF", () => {
     const { data, scores } = ctrl.collect();
-    exportPDF({ schema, school: schoolForThis, data, scores });
+    exportPDF({ schema, school: (state.current && state.current.school) || schoolForThis, data, scores });
   }, "fileDown"));
   if (editRecord) {
     btns.append(ghostBtn("ยกเลิก", () => showRecordsView(), "x"));
@@ -2347,6 +2402,118 @@ async function submitForm(editId = null) {
 // ตัวช่วยรวมกลุ่มข้อมูลตามโรงเรียน (ใช้โดยแดชบอร์ด)
 // ============================================================
 function schoolKey(s) { return (s?.school_code || "") + "|" + (s?.school_name || ""); }
+
+// ============================================================
+// คลังโรงเรียน — ค้นหา/เลือกโรงเรียนที่บันทึกข้อมูลพื้นฐานไว้
+// ============================================================
+const SCHOOL_DIR_KEY = "dltv_school_directory_v1";
+// แบบฟอร์มที่ต้องแนบข้อมูลโรงเรียน (มีช่องค้นหา/เลือกโรงเรียน)
+const SCHOOL_PICK_FORMS = new Set(["dltv01", "dltv02", "dltv03", "dltv05", "dltv07"]);
+
+function loadSchoolDir() {
+  try { return JSON.parse(localStorage.getItem(SCHOOL_DIR_KEY) || "{}"); } catch (e) { return {}; }
+}
+function saveSchoolDir(dir) {
+  try { localStorage.setItem(SCHOOL_DIR_KEY, JSON.stringify(dir)); } catch (e) { /* ไม่บล็อกการทำงาน */ }
+}
+// บันทึก/อัปเดตโรงเรียนลงคลัง (เรียกตอนกดบันทึกข้อมูลพื้นฐานโรงเรียน)
+function upsertSchool(school) {
+  if (!school || !(school.school_name || school.school_code)) return;
+  const dir = loadSchoolDir();
+  const k = schoolKey(school);
+  dir[k] = { ...(dir[k] || {}), ...school, _savedAt: new Date().toISOString() };
+  saveSchoolDir(dir);
+}
+// รวมรายชื่อโรงเรียนจาก (1) คลังที่บันทึกข้อมูลพื้นฐาน (2) ข้อมูลโรงเรียนในรายการที่เคยบันทึก
+async function getSchoolDirectory() {
+  const map = {};
+  try {
+    const subs = await listSubmissions();
+    subs.forEach(r => {
+      if (r.school && (r.school.school_name || r.school.school_code)) {
+        const k = schoolKey(r.school);
+        map[k] = { ...(map[k] || {}), ...r.school };
+      }
+    });
+  } catch (e) { /* ดึงรายการไม่ได้ ก็ใช้เฉพาะคลัง */ }
+  const dir = loadSchoolDir();
+  Object.keys(dir).forEach(k => { map[k] = { ...(map[k] || {}), ...dir[k] }; });
+  return Object.values(map)
+    .filter(s => s.school_name || s.school_code)
+    .sort((a, b) => String(a.school_name || "").localeCompare(String(b.school_name || ""), "th"));
+}
+
+// สร้างกล่องค้นหา/เลือกโรงเรียน — onPick(schoolObj|null)
+function buildSchoolPicker(schools, current, onPick) {
+  const box = document.createElement("div");
+  box.className = "school-picker";
+  box.innerHTML =
+    `<div class="school-picker__head">${icon("school", "sp-ic")}<span>เลือกโรงเรียน (ค้นหาจากที่บันทึกข้อมูลพื้นฐานไว้)</span></div>
+     <div class="school-picker__search">
+       <input type="text" class="input school-picker__input" placeholder="พิมพ์ชื่อโรงเรียน รหัสโรงเรียน หรือสังกัด เพื่อค้นหา..." autocomplete="off">
+       <div class="school-picker__list" hidden></div>
+     </div>
+     <div class="school-picker__selected"></div>`;
+  const input = box.querySelector(".school-picker__input");
+  const listEl = box.querySelector(".school-picker__list");
+  const selEl = box.querySelector(".school-picker__selected");
+
+  function renderSelected(s) {
+    if (s && (s.school_name || s.school_code)) {
+      selEl.innerHTML =
+        `<div class="sp-chip">
+           <div class="sp-chip__main">
+             <div class="sp-chip__name">${icon("check", "sp-chip__ic")}${esc(s.school_name || "(ไม่ระบุชื่อ)")}</div>
+             <div class="sp-chip__meta">
+               <span>รหัส: <b>${esc(s.school_code || "-")}</b></span>
+               <span>สังกัด: <b>${esc(s.area_office || "-")}</b></span>
+               ${s.director_name ? `<span>ผอ.: <b>${esc(s.director_name)}</b></span>` : ""}
+             </div>
+           </div>
+           <button type="button" class="sp-chip__clear">เปลี่ยนโรงเรียน</button>
+         </div>`;
+      selEl.querySelector(".sp-chip__clear").onclick = () => {
+        onPick(null); renderSelected(null); input.value = ""; input.focus();
+      };
+    } else {
+      selEl.innerHTML = schools.length
+        ? `<div class="sp-empty">ยังไม่ได้เลือกโรงเรียน — พิมพ์ชื่อโรงเรียนด้านบนเพื่อค้นหา</div>`
+        : `<div class="sp-empty sp-empty--warn">ยังไม่มีโรงเรียนในระบบ — กรุณากรอกที่เมนู “ข้อมูลโรงเรียน” แล้วกดบันทึกก่อน จึงจะค้นหาเลือกได้</div>`;
+    }
+  }
+
+  function filterList(q) {
+    q = q.trim().toLowerCase();
+    listEl.innerHTML = "";
+    if (!q) { listEl.hidden = true; return; }
+    const matches = schools.filter(s =>
+      String(s.school_name || "").toLowerCase().includes(q) ||
+      String(s.school_code || "").toLowerCase().includes(q) ||
+      String(s.area_office || "").toLowerCase().includes(q)
+    ).slice(0, 12);
+    if (!matches.length) {
+      listEl.innerHTML = `<div class="sp-opt sp-opt--none">ไม่พบโรงเรียนที่ตรงกับ “${esc(q)}”</div>`;
+      listEl.hidden = false; return;
+    }
+    matches.forEach(s => {
+      const opt = document.createElement("button");
+      opt.type = "button"; opt.className = "sp-opt";
+      opt.innerHTML =
+        `<span class="sp-opt__name">${esc(s.school_name || "(ไม่ระบุชื่อ)")}</span>
+         <span class="sp-opt__meta">รหัส ${esc(s.school_code || "-")}${s.area_office ? " · " + esc(s.area_office) : ""}</span>`;
+      opt.onclick = () => { onPick({ ...s }); renderSelected(s); input.value = s.school_name || ""; listEl.hidden = true; };
+      listEl.append(opt);
+    });
+    listEl.hidden = false;
+  }
+
+  input.addEventListener("input", () => filterList(input.value));
+  input.addEventListener("focus", () => { if (input.value) filterList(input.value); });
+  document.addEventListener("click", e => { if (!box.contains(e.target)) listEl.hidden = true; });
+
+  renderSelected(current && (current.school_name || current.school_code) ? current : null);
+  return box;
+}
 
 
 // ============================================================
